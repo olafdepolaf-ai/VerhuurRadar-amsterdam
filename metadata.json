@@ -1,0 +1,5 @@
+{
+  "name": "VerhuurRadar",
+  "description": "Controleer of er vakantieverhuur vergunningen actief zijn in uw buurt in Amsterdam.",
+  "requestFramePermissions": []
+}
