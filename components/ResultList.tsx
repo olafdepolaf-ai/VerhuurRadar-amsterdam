@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { GroupedLocation, PermitStatus } from '../types';
+import { GroupedLocation, PermitStatus, PermitRecord } from '../types';
 
 interface ResultListProps {
     locations: GroupedLocation[];
@@ -68,8 +68,10 @@ const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLo
                 {locations.map((loc) => {
                     const isSelected = selectedLocationId === loc.address;
                     
-                    // Set of years for this location for O(1) lookup
-                    const permitYears = new Set(loc.permits.map(p => p.date.substring(0, 4)));
+                    // Create a map for quick permit lookup by year
+                    const permitsByYear = new Map(
+                        loc.permits.map(p => [p.date.substring(0, 4), p] as [string, PermitRecord])
+                    );
 
                     return (
                         <li 
@@ -93,21 +95,26 @@ const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLo
                             <div className="flex items-center gap-1">
                                 {yearsRange.map(year => {
                                     const yearStr = year.toString();
-                                    const hasPermit = permitYears.has(yearStr);
+                                    const permit = permitsByYear.get(yearStr);
                                     const isActiveYear = year === 2025;
 
-                                    if (hasPermit) {
+                                    if (permit) {
                                         return (
-                                            <span 
+                                            <a 
                                                 key={year} 
-                                                className={`text-[10px] w-9 py-0.5 text-center rounded font-bold shadow-sm border leading-none ${
+                                                href={permit.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()} // Prevent selecting the row when clicking the link
+                                                className={`text-[10px] w-9 py-0.5 text-center rounded font-bold shadow-sm border leading-none transition-all hover:ring-1 hover:ring-inset ${
                                                     isActiveYear 
-                                                        ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                                                        : 'bg-slate-100 text-slate-500 border-slate-200'
+                                                        ? 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:border-emerald-400 hover:ring-emerald-400'
+                                                        : 'bg-slate-100 text-slate-500 border-slate-200 hover:border-slate-400 hover:ring-slate-400'
                                                 }`}
+                                                title={`Bekijk vergunning ${year}`}
                                             >
                                                 {year}
-                                            </span>
+                                            </a>
                                         );
                                     } else {
                                         // White box with gray border placeholder (no text)

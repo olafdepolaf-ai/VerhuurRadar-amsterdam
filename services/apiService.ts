@@ -240,6 +240,14 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
                 const identifier = findValueByLocalName(record, "identifier") || `unknown-${index}-${yearContext}`;
                 const rawTitle = findValueByLocalName(record, "title") || "Onbekende vergunning";
                 
+                // Construct URL
+                let url = identifier;
+                if (identifier && !identifier.startsWith('http')) {
+                    // Usually identifiers are like "gmb-2025-12345". 
+                    // The public URL is often https://zoek.officielebekendmakingen.nl/{identifier}
+                    url = `https://zoek.officielebekendmakingen.nl/${identifier}`;
+                }
+
                 let dateStr = findValueByLocalName(record, "modified") || findValueByLocalName(record, "datumOntvangst");
                 if (dateStr) {
                     dateStr = dateStr.split("T")[0]; 
@@ -290,13 +298,13 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
                     // We strictly need valid coordinates to plot on map
                     if (wgs) {
                          // We have direct WGS
-                         results.push({ id: identifier, title: rawTitle, date: dateStr, address, coordinates: rd!, wgs84: wgs });
+                         results.push({ id: identifier, title: rawTitle, date: dateStr, address, coordinates: rd!, wgs84: wgs, url });
                     } else if (rd) {
                         const validRD = validateAndFixRD(rd);
                         if (validRD) {
                             const converted = rdToWgs84(validRD.x, validRD.y);
                             if (converted) {
-                                results.push({ id: identifier, title: rawTitle, date: dateStr, address, coordinates: validRD, wgs84: converted });
+                                results.push({ id: identifier, title: rawTitle, date: dateStr, address, coordinates: validRD, wgs84: converted, url });
                             }
                         }
                     }
@@ -309,7 +317,8 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
                         date: dateStr, 
                         address, 
                         coordinates: rd || undefined, 
-                        wgs84: wgs || undefined 
+                        wgs84: wgs || undefined,
+                        url
                     });
                 }
 

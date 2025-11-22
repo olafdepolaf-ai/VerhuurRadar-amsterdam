@@ -28,6 +28,7 @@ export interface PermitRecord {
     address: string;
     coordinates?: RDCoordinate; // Optional now
     wgs84?: LatLngCoordinate;   // Optional now
+    url?: string;
 }
 
 export interface GroupedLocation {

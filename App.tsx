@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import AddressSearch from './components/AddressSearch';
 import MapComponent from './components/MapComponent';
@@ -204,9 +205,11 @@ function App() {
                     </h1>
                 </div>
 
-                <p className="text-lg text-slate-600 max-w-lg mx-auto leading-relaxed mb-8">
-                  Inzicht in alle vergunningen voor vakantieverhuur in Amsterdam.
-                </p>
+                <div className="flex flex-col items-center gap-1 mb-8 max-w-lg mx-auto">
+                    <p className="text-lg text-slate-600 leading-relaxed">
+                      Inzicht in alle vergunningen voor vakantieverhuur in Amsterdam.
+                    </p>
+                </div>
                 
                 <div className="w-full relative z-20 mb-10">
                     <AddressSearch onAddressSelect={handleAddressSelect} />
@@ -296,11 +299,12 @@ function App() {
                         <span className="font-bold text-xl tracking-tight">
                             <span className="text-slate-900">Verhuur</span><span className="text-red-600">Radar</span>
                         </span>
+                        <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Amsterdam</span>
                     </div>
                 </div>
                 
                 {/* Search Bar aligned to the left (by taking up space) */}
-                <div className="hidden md:block flex-1 max-w-md mx-6">
+                <div className="hidden md:flex flex-1 max-w-md mx-6 h-full items-center">
                     <AddressSearch 
                         onAddressSelect={handleAddressSelect} 
                         isCompact={true} 
