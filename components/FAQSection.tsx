@@ -49,6 +49,13 @@ const FAQSection: React.FC = () => {
                 answer={`Bij vakantieverhuur verhuurt de bewoner de hele woning aan toeristen. De bewoner is zelf niet thuis. Dit mag maximaal 30 nachten per jaar.\n\nDit is anders dan een Bed en Breakfast. Bij een Bed en Breakfast wordt maar een deel van het huis verhuurd en is de bewoner wel thuis.`}
             />
 
+            <FAQItem 
+                question="Regels voor kamerverhuur en huisbewaring"
+                answer={`Wilt u uw huis tijdelijk verhuren omdat u lang weg bent? Of wilt u een kamer verhuren? Dan gelden er andere regels. U heeft dan een andere vergunning nodig.`}
+                link="https://www.amsterdam.nl/wonen-bouwen-verbouwen/woonruimte-verhuren/regels-verhuur-woning/"
+                linkText="Bekijk de regels voor andere soorten verhuur"
+            />
+
              <FAQItem 
                 question="Waar komt deze data vandaan?"
                 answer="Deze website toont openbare gegevens van de Gemeente Amsterdam. De informatie komt direct van de website Overheid punt nl. Het gaat alleen om adressen die een vergunning hebben gekregen."

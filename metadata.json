@@ -1,5 +1,5 @@
 {
-  "name": "VerhuurRadar",
-  "description": "Controleer of er vakantieverhuur vergunningen actief zijn in uw buurt in Amsterdam.",
+  "name": "VerhuurRadar - V 0.1",
+  "description": "check of er vakantieverhuur vergunningen actief zijn in jouw buurt in Amsterdam.",
   "requestFramePermissions": []
 }
