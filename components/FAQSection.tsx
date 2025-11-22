@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 const FAQItem = ({ question, answer, link, linkText }: { question: string, answer: string, link?: string, linkText?: string }) => {
@@ -43,14 +44,14 @@ const FAQSection: React.FC = () => {
     return (
         <div className="w-full max-w-lg mt-8 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden animate-fade-in-up delay-200 text-left">
             
-             <FAQItem 
-                question="Waar komt deze data vandaan?"
-                answer="Deze website toont openbare gegevens van de Gemeente Amsterdam. De informatie komt direct van de website Overheid punt nl. Het gaat alleen om adressen die een vergunning hebben gekregen."
-            />
-
             <FAQItem 
                 question="Wat is tijdelijke vakantieverhuur?"
                 answer={`Bij vakantieverhuur verhuurt de bewoner de hele woning aan toeristen. De bewoner is zelf niet thuis. Dit mag maximaal 30 nachten per jaar.\n\nDit is anders dan een Bed en Breakfast. Bij een Bed en Breakfast wordt maar een deel van het huis verhuurd en is de bewoner wel thuis.`}
+            />
+
+             <FAQItem 
+                question="Waar komt deze data vandaan?"
+                answer="Deze website toont openbare gegevens van de Gemeente Amsterdam. De informatie komt direct van de website Overheid punt nl. Het gaat alleen om adressen die een vergunning hebben gekregen."
             />
 
             <FAQItem 

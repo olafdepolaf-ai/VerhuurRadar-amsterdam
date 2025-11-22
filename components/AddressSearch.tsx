@@ -7,9 +7,10 @@ interface AddressSearchProps {
     onAddressSelect: (address: AddressResult) => void;
     isCompact?: boolean;
     initialValue?: string;
+    onClear?: () => void;
 }
 
-const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompact = false, initialValue = '' }) => {
+const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompact = false, initialValue = '', onClear }) => {
     const [query, setQuery] = useState(initialValue);
     const [suggestions, setSuggestions] = useState<AddressResult[]>([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -109,7 +110,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
         e.preventDefault();
         if (query.length < 3 || isSelecting) return;
 
-        // If user hit enter without highlighting anything, assume top result or perform search
+        // If suggestions exist but user didn't pick one, pick the first
         setIsOpen(false);
         setIsSelecting(true);
 
@@ -117,7 +118,6 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
             let targetId = '';
             
             if (suggestions.length > 0) {
-                // If suggestions exist but user didn't pick one, pick the first
                 targetId = suggestions[0].id;
                 setQuery(suggestions[0].weergavenaam);
             } else {
@@ -147,6 +147,15 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
         }
     };
 
+    const handleClearInput = () => {
+        setQuery('');
+        setSuggestions([]);
+        setIsOpen(false);
+        if (onClear) {
+            onClear();
+        }
+    };
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
@@ -156,6 +165,8 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [wrapperRef]);
+
+    const showClearButton = onClear && query.length > 0;
 
     return (
         <div ref={wrapperRef} className={`relative w-full ${isCompact ? 'max-w-full' : 'max-w-2xl mx-auto'}`}>
@@ -175,17 +186,32 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
                     />
                 </div>
                 
-                <button 
-                    type="submit"
-                    disabled={query.length < 3 || isLoading || isSelecting}
-                    className={`bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-bold transition-colors flex items-center justify-center px-6 ${isCompact ? 'text-sm px-4' : 'text-base'}`}
-                >
-                    {isLoading || isSelecting ? (
-                        <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
-                    ) : (
-                        'Zoek'
-                    )}
-                </button>
+                {showClearButton ? (
+                    <button 
+                        type="button"
+                        onClick={handleClearInput}
+                        className={`bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors flex items-center justify-center ${isCompact ? 'w-10 px-0' : 'w-14 px-0'}`}
+                        title="Zoekopdracht wissen"
+                    >
+                        <div className="bg-slate-300 rounded-full p-1 hover:bg-slate-400 text-white transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
+                                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                            </svg>
+                        </div>
+                    </button>
+                ) : (
+                    <button 
+                        type="submit"
+                        disabled={query.length < 3 || isLoading || isSelecting}
+                        className={`bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-bold transition-colors flex items-center justify-center px-6 ${isCompact ? 'text-sm px-4' : 'text-base'}`}
+                    >
+                        {isLoading || isSelecting ? (
+                            <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                        ) : (
+                            'Zoek'
+                        )}
+                    </button>
+                )}
             </form>
 
             {isOpen && (

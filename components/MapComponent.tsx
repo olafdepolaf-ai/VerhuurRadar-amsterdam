@@ -57,11 +57,11 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
             dashArray: '6, 6'
         }).addTo(mapRef.current);
 
-        // Add User Location Marker (Sharper Pin, Red)
+        // Add User Location Marker (Sharper Pin, Red with White Dot)
         const pinSvg = `
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#dc2626" class="w-full h-full filter drop-shadow-md">
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                <path d="M12 24L12 24L12 22C12 22 12 24 12 24Z" opacity="0" /> 
+                <circle cx="12" cy="9" r="3" fill="white" />
                 <polygon points="12,24 9,15 15,15" fill="#dc2626"/>
             </svg>
         `;

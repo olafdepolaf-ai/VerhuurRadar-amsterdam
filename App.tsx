@@ -6,7 +6,7 @@ import ResultList from './components/ResultList';
 import StatsWidget from './components/StatsWidget';
 import FAQSection from './components/FAQSection';
 import { AddressResult, GroupedLocation, PermitRecord, PermitStatus, LatLngCoordinate } from './types';
-import { fetchPermitsForYear, fetchRecentPermits, fetchActivePermitCount } from './services/apiService';
+import { fetchPermitsForYear, fetchRecentPermits, fetchActivePermitCount, searchAddress, lookupAddress } from './services/apiService';
 import { parsePointString } from './services/geoService';
 
 // Custom SVG Logo Component
@@ -156,7 +156,7 @@ function App() {
 
         if (rd) {
             const startYear = 2025;
-            const endYear = 2020;
+            const endYear = 2021; // Stop at 2021, 2020 no data
             const radius = 200;
 
             for (let year = startYear; year >= endYear; year--) {
@@ -185,6 +185,20 @@ function App() {
     setErrorMsg(null);
   };
 
+  const handleRecentPermitClick = async (address: string) => {
+    try {
+        const suggestions = await searchAddress(address);
+        if (suggestions.length > 0) {
+            const fullResult = await lookupAddress(suggestions[0].id);
+            if (fullResult) {
+                handleAddressSelect(fullResult);
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load recent permit address", e);
+    }
+  };
+
   return (
     <div className="h-screen w-full flex flex-col bg-white font-sans text-slate-900 overflow-hidden">
       
@@ -207,7 +221,7 @@ function App() {
 
                 <div className="flex flex-col items-center gap-1 mb-8 max-w-lg mx-auto">
                     <p className="text-lg text-slate-600 leading-relaxed">
-                      Snel inzicht in alle vergunningen voor vakantieverhuur in Amsterdam.
+                      Inzicht in alle vergunningen voor vakantieverhuur in Amsterdam.
                     </p>
                 </div>
                 
@@ -225,8 +239,12 @@ function App() {
                     <div className="w-full max-w-md space-y-3 animate-fade-in-up">
                         <div className="text-xs font-bold text-slate-400 uppercase tracking-widest text-left pl-1">Laatst verleend</div>
                         {recentPermits.map((permit, idx) => (
-                            <div key={idx} className="bg-white border border-slate-200 rounded shadow-sm p-3 flex justify-between items-center">
-                                 <div className="font-semibold text-slate-800 text-sm truncate pr-2">{permit.address}</div>
+                            <div 
+                                key={idx} 
+                                onClick={() => handleRecentPermitClick(permit.address)}
+                                className="bg-white border border-slate-200 rounded shadow-sm p-3 flex justify-between items-center cursor-pointer hover:bg-red-50 hover:border-red-100 transition-colors group"
+                            >
+                                 <div className="font-semibold text-slate-800 group-hover:text-red-700 text-sm truncate pr-2">{permit.address}</div>
                                  <div className="text-xs font-medium text-slate-500 whitespace-nowrap">
                                     {formatRelativeDate(permit.date)}
                                  </div>
@@ -309,6 +327,7 @@ function App() {
                         onAddressSelect={handleAddressSelect} 
                         isCompact={true} 
                         initialValue={currentAddress?.weergavenaam}
+                        onClear={handleReset}
                     />
                 </div>
             </header>
@@ -317,12 +336,13 @@ function App() {
             <div className="flex-1 flex flex-col md:flex-row relative overflow-hidden">
                 
                 {/* Mobile Search Overlay */}
-                <div className="md:hidden absolute top-0 left-0 w-full z-[1000] p-4 pointer-events-none">
-                    <div className="w-full bg-white/90 backdrop-blur-md shadow-lg border border-white/50 rounded-xl p-2 pointer-events-auto">
+                <div className="md:hidden absolute top-0 left-0 w-full z-[1000] px-2 pt-2 pointer-events-none">
+                    <div className="w-full bg-white/90 backdrop-blur-md shadow-lg border border-white/50 rounded-xl p-1 pointer-events-auto">
                         <AddressSearch 
                             onAddressSelect={handleAddressSelect} 
                             isCompact={true} 
                             initialValue={currentAddress?.weergavenaam}
+                            onClear={handleReset}
                         />
                     </div>
                 </div>
@@ -343,17 +363,17 @@ function App() {
                      <div className="absolute bottom-6 left-4 md:left-6 bg-white/90 backdrop-blur px-4 py-3 rounded-lg shadow-lg border border-slate-200 text-xs z-[999] pointer-events-none">
                         <div className="flex items-center gap-2 mb-1">
                             <span className="w-3 h-3 rounded-full bg-red-500 border border-white shadow-sm"></span>
-                            <span className="font-medium text-slate-700">Nu Actief (2025)</span>
+                            <span className="font-medium text-slate-700">Actief</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="w-3 h-3 rounded-full bg-slate-400 border border-white shadow-sm"></span>
-                            <span className="font-medium text-slate-700">Historie (2020-2024)</span>
+                            <span className="font-medium text-slate-700">Inactief - 2021-2024</span>
                         </div>
                      </div>
                 </div>
 
                 {/* List Area */}
-                <div className="h-[45vh] md:h-full w-full md:w-72 min-w-[280px] bg-white border-t md:border-t-0 md:border-r border-slate-200 shadow-xl z-10 flex flex-col order-2 md:order-1 pt-0 md:pt-0">
+                <div className="h-[45vh] md:h-full w-full md:w-72 min-w-[288px] bg-white border-t md:border-t-0 md:border-r border-slate-200 shadow-xl z-10 flex flex-col order-2 md:order-1 pt-0 md:pt-0">
                     <ResultList 
                         locations={groupedLocations} 
                         onSelect={(loc) => setSelectedLocationId(loc.address)}

@@ -1,3 +1,4 @@
+
 export interface RDCoordinate {
     x: number;
     y: number;
@@ -17,7 +18,7 @@ export interface AddressResult {
 
 export enum PermitStatus {
     ACTIVE = 'ACTIVE', // 2025 permit exists
-    INACTIVE = 'INACTIVE', // 2020-2024 exists, but no 2025
+    INACTIVE = 'INACTIVE', // 2021-2024 exists, but no 2025
     UNKNOWN = 'UNKNOWN'
 }
 
