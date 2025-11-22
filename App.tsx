@@ -5,6 +5,7 @@ import MapComponent from './components/MapComponent';
 import ResultList from './components/ResultList';
 import StatsWidget from './components/StatsWidget';
 import FAQSection from './components/FAQSection';
+import MapLegend from './components/MapLegend';
 import { AddressResult, GroupedLocation, PermitRecord, PermitStatus, LatLngCoordinate } from './types';
 import { fetchPermitsForYear, fetchRecentPermits, fetchActivePermitCount, searchAddress, lookupAddress } from './services/apiService';
 import { parsePointString } from './services/geoService';
@@ -337,7 +338,7 @@ function App() {
                 
                 {/* Mobile Search Overlay */}
                 <div className="md:hidden absolute top-0 left-0 w-full z-[1000] px-2 pt-2 pointer-events-none">
-                    <div className="w-full bg-white/90 backdrop-blur-md shadow-lg border border-white/50 rounded-xl p-1 pointer-events-auto">
+                    <div className="w-full pointer-events-auto">
                         <AddressSearch 
                             onAddressSelect={handleAddressSelect} 
                             isCompact={true} 
@@ -360,16 +361,7 @@ function App() {
                         selectedLocationId={selectedLocationId}
                      />
                      
-                     <div className="absolute bottom-6 left-4 md:left-6 bg-white/90 backdrop-blur px-4 py-3 rounded-lg shadow-lg border border-slate-200 text-xs z-[999] pointer-events-none">
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="w-3 h-3 rounded-full bg-red-500 border border-white shadow-sm"></span>
-                            <span className="font-medium text-slate-700">Actief</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-slate-400 border border-white shadow-sm"></span>
-                            <span className="font-medium text-slate-700">Inactief - 2021-2024</span>
-                        </div>
-                     </div>
+                     <MapLegend />
                 </div>
 
                 {/* List Area */}
