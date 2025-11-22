@@ -199,7 +199,7 @@ function App() {
                 {/* Logo / Header */}
                 <div className="mb-6 flex items-center justify-center gap-3">
                     <VerhuurRadarIcon className="w-14 h-14 md:w-16 md:h-16 shadow-lg rounded-full" />
-                    <h1 className="text-5xl font-bold tracking-tight">
+                    <h1 className="text-5xl md:text-6xl font-bold tracking-tight flex items-baseline">
                       <span className="text-slate-900">Verhuur</span>
                       <span className="text-red-600">Radar</span>
                     </h1>
@@ -207,7 +207,7 @@ function App() {
 
                 <div className="flex flex-col items-center gap-1 mb-8 max-w-lg mx-auto">
                     <p className="text-lg text-slate-600 leading-relaxed">
-                      Inzicht in alle vergunningen voor vakantieverhuur in Amsterdam.
+                      Snel inzicht in alle vergunningen voor vakantieverhuur in Amsterdam.
                     </p>
                 </div>
                 
@@ -251,7 +251,7 @@ function App() {
                                 rel="noopener noreferrer"
                                 className="text-red-600 hover:text-red-800 text-sm font-semibold hover:underline inline-flex items-center gap-1"
                              >
-                                Meer info op amsterdam.nl
+                                Meer info op Amsterdam.nl
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                                   <path fillRule="evenodd" d="M5 10a.75.75 0 01.75-.75h6.638L10.23 7.29a.75.75 0 111.04-1.08l3.5 3.25a.75.75 0 010 1.08l-3.5 3.25a.75.75 0 11-1.04-1.08l2.158-1.96H5.75A.75.75 0 015 10z" clipRule="evenodd" />
                                 </svg>
@@ -286,25 +286,25 @@ function App() {
       {hasSearched && userLocation && (
         <div className="flex flex-col h-full w-full">
             {/* Header */}
-            <header className="flex-none bg-white border-b border-slate-200 h-16 px-4 md:px-6 flex items-center justify-between z-[2000] shadow-sm relative">
+            <header className="flex-none bg-white border-b border-slate-200 h-16 px-4 md:px-6 flex items-center z-[2000] shadow-sm relative">
                 <div 
                     onClick={handleReset}
-                    className="cursor-pointer flex items-center gap-3 hover:opacity-80 transition-opacity"
+                    className="cursor-pointer flex items-center gap-3 hover:opacity-80 transition-opacity mr-auto"
                     role="button"
                     tabIndex={0}
                     title="Terug naar start"
                 >
                     <VerhuurRadarIcon className="w-8 h-8 shadow-sm rounded-full" />
                     <div className="flex flex-col leading-none justify-center">
-                        <span className="font-bold text-xl tracking-tight">
+                        <span className="font-bold text-xl md:text-2xl tracking-tight">
                             <span className="text-slate-900">Verhuur</span><span className="text-red-600">Radar</span>
                         </span>
                         <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Amsterdam</span>
                     </div>
                 </div>
                 
-                {/* Search Bar aligned to the left (by taking up space) */}
-                <div className="hidden md:flex flex-1 max-w-md mx-6 h-full items-center">
+                {/* Search Bar aligned to the right */}
+                <div className="hidden md:flex w-72 ml-auto items-center">
                     <AddressSearch 
                         onAddressSelect={handleAddressSelect} 
                         isCompact={true} 
@@ -342,18 +342,18 @@ function App() {
                      
                      <div className="absolute bottom-6 left-4 md:left-6 bg-white/90 backdrop-blur px-4 py-3 rounded-lg shadow-lg border border-slate-200 text-xs z-[999] pointer-events-none">
                         <div className="flex items-center gap-2 mb-1">
-                            <span className="w-3 h-3 rounded-full bg-emerald-500 border border-white shadow-sm"></span>
+                            <span className="w-3 h-3 rounded-full bg-red-500 border border-white shadow-sm"></span>
                             <span className="font-medium text-slate-700">Nu Actief (2025)</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-slate-300 border border-white shadow-sm"></span>
+                            <span className="w-3 h-3 rounded-full bg-slate-400 border border-white shadow-sm"></span>
                             <span className="font-medium text-slate-700">Historie (2020-2024)</span>
                         </div>
                      </div>
                 </div>
 
                 {/* List Area */}
-                <div className="h-[45vh] md:h-full w-full md:w-80 min-w-[300px] bg-white border-t md:border-t-0 md:border-r border-slate-200 shadow-xl z-10 flex flex-col order-2 md:order-1 pt-0 md:pt-0">
+                <div className="h-[45vh] md:h-full w-full md:w-72 min-w-[280px] bg-white border-t md:border-t-0 md:border-r border-slate-200 shadow-xl z-10 flex flex-col order-2 md:order-1 pt-0 md:pt-0">
                     <ResultList 
                         locations={groupedLocations} 
                         onSelect={(loc) => setSelectedLocationId(loc.address)}

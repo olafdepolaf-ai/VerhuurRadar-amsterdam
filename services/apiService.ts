@@ -1,3 +1,4 @@
+
 import { AddressResult, PermitRecord, RDCoordinate } from "../types";
 import { rdToWgs84 } from "./geoService";
 
@@ -244,8 +245,9 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
                 let url = identifier;
                 if (identifier && !identifier.startsWith('http')) {
                     // Usually identifiers are like "gmb-2025-12345". 
-                    // The public URL is often https://zoek.officielebekendmakingen.nl/{identifier}
-                    url = `https://zoek.officielebekendmakingen.nl/${identifier}`;
+                    // The public URL is often https://zoek.officielebekendmakingen.nl/{identifier}.html
+                    // We append .html to ensure it opens correctly
+                    url = `https://zoek.officielebekendmakingen.nl/${identifier}.html`;
                 }
 
                 let dateStr = findValueByLocalName(record, "modified") || findValueByLocalName(record, "datumOntvangst");

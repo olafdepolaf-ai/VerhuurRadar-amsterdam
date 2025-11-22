@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { GroupedLocation, PermitStatus, PermitRecord } from '../types';
 
@@ -69,9 +70,10 @@ const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLo
                     const isSelected = selectedLocationId === loc.address;
                     
                     // Create a map for quick permit lookup by year
-                    const permitsByYear = new Map(
-                        loc.permits.map(p => [p.date.substring(0, 4), p] as [string, PermitRecord])
-                    );
+                    const permitsByYear = new Map<string, PermitRecord>();
+                    loc.permits.forEach(p => {
+                        permitsByYear.set(p.date.substring(0, 4), p);
+                    });
 
                     return (
                         <li 
@@ -86,7 +88,7 @@ const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLo
                         >
                             {/* Address Row */}
                             <div className="min-w-0">
-                                 <h3 className={`font-medium text-sm md:text-base truncate leading-tight ${isSelected ? 'text-slate-900 font-bold' : 'text-slate-900'}`}>
+                                 <h3 className={`font-medium text-sm md:text-base leading-tight break-words ${isSelected ? 'text-slate-900 font-bold' : 'text-slate-900'}`}>
                                     {loc.address}
                                  </h3>
                             </div>

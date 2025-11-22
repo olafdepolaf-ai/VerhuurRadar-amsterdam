@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import * as L from 'leaflet';
 import { GroupedLocation, PermitStatus, LatLngCoordinate } from '../types';
@@ -21,6 +22,12 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
     useEffect(() => {
         onMarkerClickRef.current = onMarkerClick;
     }, [onMarkerClick]);
+
+    // Track selected ID in a ref to access it inside event handlers (mouseover/out) without re-binding
+    const selectedLocationIdRef = useRef(selectedLocationId);
+    useEffect(() => {
+        selectedLocationIdRef.current = selectedLocationId;
+    }, [selectedLocationId]);
 
     // Initialize Map
     useEffect(() => {
@@ -50,13 +57,22 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
             dashArray: '6, 6'
         }).addTo(mapRef.current);
 
-        // Add User Location Marker (Blue)
+        // Add User Location Marker (Sharper Pin, Red)
+        const pinSvg = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#dc2626" class="w-full h-full filter drop-shadow-md">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                <path d="M12 24L12 24L12 22C12 22 12 24 12 24Z" opacity="0" /> 
+                <polygon points="12,24 9,15 15,15" fill="#dc2626"/>
+            </svg>
+        `;
+
         const userIcon = L.divIcon({
-            className: 'custom-user-icon',
-            html: `<div class="w-4 h-4 bg-blue-600 rounded-full shadow-lg pulse-ring"></div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8]
+            className: 'bg-transparent border-0',
+            html: pinSvg,
+            iconSize: [40, 48], // Taller for the point
+            iconAnchor: [20, 48] // Anchor exactly at the bottom tip
         });
+
         userMarkerRef.current = L.marker([center.lat, center.lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(mapRef.current);
 
         return () => {
@@ -94,17 +110,49 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
         locations.forEach(loc => {
             const isActive = loc.status === PermitStatus.ACTIVE;
             
-            // Functional colors: Green for Active, Gray for Inactive
-            const fillColor = isActive ? '#10b981' : '#94a3b8';
+            // Colors: Lighter Red (#ef4444 / red-500) for Active to distinguish from User Pin, Gray (#94a3b8) for Inactive
+            const fillColor = isActive ? '#ef4444' : '#94a3b8';
             
+            // Borders: White border for EVERYONE now (better contrast)
+            const strokeColor = '#ffffff';
+            const weight = 1;
+
             const marker = L.circleMarker([loc.wgs84.lat, loc.wgs84.lng], {
                 radius: 5,
                 fillColor: fillColor,
-                color: 'transparent', // Default no border
-                weight: 0,
-                stroke: false,
+                color: strokeColor,
+                weight: weight,
+                stroke: true, 
                 opacity: 1,
-                fillOpacity: 0.9
+                fillOpacity: 1 // Solid fill
+            });
+
+            // Hover Effects
+            marker.on('mouseover', function (this: L.CircleMarker) {
+                this.setStyle({
+                    color: '#334155', // Dark Slate border on hover
+                    weight: 3
+                });
+                this.bringToFront();
+            });
+
+            marker.on('mouseout', function (this: L.CircleMarker) {
+                // Check if this marker is currently selected
+                // If selected, keep the selected style (Dark border)
+                // If not, revert to default (White border)
+                const isSelected = selectedLocationIdRef.current === loc.address;
+                
+                if (isSelected) {
+                     this.setStyle({
+                        color: '#334155', 
+                        weight: 3
+                    });
+                } else {
+                    this.setStyle({
+                        color: '#ffffff',
+                        weight: 1
+                    });
+                }
             });
 
             marker.on('click', () => {
@@ -114,7 +162,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
                 const popupContent = `
                     <div class="font-sans">
                         <h3 class="font-bold text-sm mb-1">${loc.address}</h3>
-                        <p class="text-xs ${isActive ? 'text-green-600 font-bold' : 'text-slate-500'}">
+                        <p class="text-xs ${isActive ? 'text-red-500 font-bold' : 'text-slate-500'}">
                             ${isActive ? '● Nu actief (2025)' : '○ Alleen historie'}
                         </p>
                     </div>
@@ -145,23 +193,21 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
 
             if (isSelected) {
                 circleMarker.setStyle({
-                    color: '#334155', // Dark Slate border
+                    color: '#334155', // Dark Slate border for selection
                     weight: 3,
                     stroke: true
                 });
                 circleMarker.bringToFront();
-                // Ensure popup is open if we selected via list
-                if (!circleMarker.isPopupOpen()) {
-                    // We construct popup content in creation, but bindPopup makes it available.
-                    // If selected via list, we might want to open it.
-                    // The data logic is inside the closure of creation, so simple openPopup works if bound.
+                 if (!circleMarker.isPopupOpen()) {
                      circleMarker.openPopup();
                 }
             } else {
+                // Reset to default style
+                // Both active and inactive now have white borders
                 circleMarker.setStyle({
-                    color: 'transparent',
-                    weight: 0,
-                    stroke: false
+                    color: '#ffffff',
+                    weight: 1,
+                    stroke: true
                 });
             }
         });
