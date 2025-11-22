@@ -170,7 +170,10 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
 
     return (
         <div ref={wrapperRef} className={`relative w-full ${isCompact ? 'max-w-full' : 'max-w-2xl mx-auto'}`}>
-            <form onSubmit={handleManualSearch} className={`flex w-full rounded-xl shadow-lg bg-white border border-slate-200 overflow-hidden transition-shadow focus-within:ring-4 focus-within:ring-red-500/20 ${isCompact ? 'h-10' : 'h-14'}`}>
+            <form 
+                onSubmit={handleManualSearch} 
+                className={`flex w-full rounded-xl bg-white border border-slate-200 overflow-hidden transition-shadow focus-within:ring-4 focus-within:ring-red-500/20 ${isCompact ? 'h-10' : 'h-14'} ${isCompact ? 'shadow-none md:shadow-lg' : 'shadow-lg'}`}
+            >
                 <div className="flex-1 relative h-full">
                     <input
                         type="text"
@@ -193,7 +196,8 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
                         className={`bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors flex items-center justify-center ${isCompact ? 'w-10 px-0' : 'w-14 px-0'}`}
                         title="Zoekopdracht wissen"
                     >
-                        <div className="bg-slate-300 rounded-full p-1 hover:bg-slate-400 text-white transition-colors">
+                        {/* New styling: Black border, black text, transparent background inside */}
+                        <div className="rounded-full p-1 border border-slate-900 text-slate-900 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
                                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                             </svg>
