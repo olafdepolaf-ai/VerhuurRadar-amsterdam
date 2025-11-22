@@ -15,40 +15,45 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
     const markersRef = useRef<{ [key: string]: L.CircleMarker }>({});
     const userMarkerRef = useRef<L.Marker | null>(null);
     const radiusCircleRef = useRef<L.Circle | null>(null);
+    
+    // Stable reference for the callback to avoid re-running effects when the function reference changes
+    const onMarkerClickRef = useRef(onMarkerClick);
+    useEffect(() => {
+        onMarkerClickRef.current = onMarkerClick;
+    }, [onMarkerClick]);
 
     // Initialize Map
     useEffect(() => {
         if (!containerRef.current || mapRef.current) return;
 
-        // Increased zoom level from 18 to 19
+        // Default zoom 20
         mapRef.current = L.map(containerRef.current, {
             zoomControl: false,
             attributionControl: false
-        }).setView([center.lat, center.lng], 19);
+        }).setView([center.lat, center.lng], 20);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
             subdomains: 'abcd',
-            maxZoom: 20
+            maxZoom: 21
         }).addTo(mapRef.current);
 
         L.control.zoom({ position: 'bottomright' }).addTo(mapRef.current);
 
-        // Add 200m radius circle (Red for Amsterdam branding)
+        // Add 200m radius circle (Blue, no fill)
         radiusCircleRef.current = L.circle([center.lat, center.lng], {
-            color: '#dc2626', // red-600
-            fillColor: '#dc2626',
-            fillOpacity: 0.05,
+            color: '#2563eb', // blue-600
+            fillColor: 'transparent',
+            fillOpacity: 0,
             radius: 200,
-            weight: 1,
-            dashArray: '5, 5'
+            weight: 2,
+            dashArray: '6, 6'
         }).addTo(mapRef.current);
 
-        // Add User Location Marker (Red)
-        // Removed 'border-2 border-white' as requested
+        // Add User Location Marker (Blue)
         const userIcon = L.divIcon({
             className: 'custom-user-icon',
-            html: `<div class="w-4 h-4 bg-red-600 rounded-full shadow-lg pulse-ring"></div>`,
+            html: `<div class="w-4 h-4 bg-blue-600 rounded-full shadow-lg pulse-ring"></div>`,
             iconSize: [16, 16],
             iconAnchor: [8, 8]
         });
@@ -62,7 +67,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
         };
     }, []);
 
-    // Update center/user marker
+    // Update center/user marker position
     useEffect(() => {
         if (!mapRef.current) return;
         
@@ -74,7 +79,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
         }
     }, [center]);
 
-    // Handle markers and FitBounds
+    // 1. Handle Data Changes (Create Markers & Set Initial Bounds)
+    // This ONLY runs when the locations array changes (new search), NOT when selecting a marker.
     useEffect(() => {
         if (!mapRef.current) return;
         
@@ -87,7 +93,6 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
         // Add new markers
         locations.forEach(loc => {
             const isActive = loc.status === PermitStatus.ACTIVE;
-            const isSelected = selectedLocationId === loc.address;
             
             // Functional colors: Green for Active, Gray for Inactive
             const fillColor = isActive ? '#10b981' : '#94a3b8';
@@ -95,16 +100,16 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
             const marker = L.circleMarker([loc.wgs84.lat, loc.wgs84.lng], {
                 radius: 5,
                 fillColor: fillColor,
-                // Apply Dark Gray stroke ONLY if selected
-                color: isSelected ? '#334155' : 'transparent', 
-                weight: isSelected ? 3 : 0,
-                stroke: isSelected, 
+                color: 'transparent', // Default no border
+                weight: 0,
+                stroke: false,
                 opacity: 1,
                 fillOpacity: 0.9
             });
 
             marker.on('click', () => {
-                onMarkerClick(loc);
+                // Call the stable ref
+                onMarkerClickRef.current(loc);
                 
                 const popupContent = `
                     <div class="font-sans">
@@ -117,34 +122,49 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
                 marker.bindPopup(popupContent).openPopup();
             });
 
-            // Bring selected marker to front
-            if (isSelected) {
-                marker.bringToFront();
-            }
-
             marker.addTo(mapRef.current!);
             markersRef.current[loc.address] = marker;
             bounds.extend([loc.wgs84.lat, loc.wgs84.lng]);
         });
 
-        // Fit bounds if there are locations found
-        // Increased maxZoom to 19 to allow zooming in closer to the circle
+        // Only fit bounds on data change
         if (locations.length > 0) {
-            mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 19 });
+            mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 21 });
         } else {
-            mapRef.current.setView([center.lat, center.lng], 19);
+            mapRef.current.setView([center.lat, center.lng], 20);
         }
 
-    }, [locations, center, onMarkerClick, selectedLocationId]); // Added selectedLocationId to deps
+    }, [locations, center]); // Removing selectedLocationId from here prevents re-zoom on click
 
-    // Handle external selection styling (popup logic)
+    // 2. Handle Selection Changes (Styling Only)
+    // This runs when the user clicks, updating styles without resetting the view.
     useEffect(() => {
-        if (selectedLocationId && markersRef.current[selectedLocationId]) {
-            const marker = markersRef.current[selectedLocationId];
-            marker.openPopup();
-            // Optional: pan to selected
-             mapRef.current?.panTo(marker.getLatLng());
-        }
+        Object.entries(markersRef.current).forEach(([address, marker]) => {
+            const circleMarker = marker as L.CircleMarker;
+            const isSelected = address === selectedLocationId;
+
+            if (isSelected) {
+                circleMarker.setStyle({
+                    color: '#334155', // Dark Slate border
+                    weight: 3,
+                    stroke: true
+                });
+                circleMarker.bringToFront();
+                // Ensure popup is open if we selected via list
+                if (!circleMarker.isPopupOpen()) {
+                    // We construct popup content in creation, but bindPopup makes it available.
+                    // If selected via list, we might want to open it.
+                    // The data logic is inside the closure of creation, so simple openPopup works if bound.
+                     circleMarker.openPopup();
+                }
+            } else {
+                circleMarker.setStyle({
+                    color: 'transparent',
+                    weight: 0,
+                    stroke: false
+                });
+            }
+        });
     }, [selectedLocationId]);
 
     return <div ref={containerRef} className="w-full h-full z-0" />;

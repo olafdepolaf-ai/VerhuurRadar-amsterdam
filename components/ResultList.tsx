@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { GroupedLocation, PermitStatus } from '../types';
 
 interface ResultListProps {
@@ -11,6 +11,21 @@ interface ResultListProps {
 
 const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLocationId, isLoading = false, loadingStatus = "" }) => {
     
+    // Define the range of years we track
+    const yearsRange = [2020, 2021, 2022, 2023, 2024, 2025];
+
+    // Auto-scroll to selected item
+    useEffect(() => {
+        if (selectedLocationId) {
+            // Escape special characters for ID usage if necessary, but address usually works if simple
+            // Using a simpler approach: finding by data attribute or id
+            const element = document.getElementById(`loc-${selectedLocationId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }, [selectedLocationId]);
+
     if (isLoading && locations.length === 0) {
         return (
             <div className="p-8 flex flex-col items-center justify-center h-full">
@@ -38,60 +53,73 @@ const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLo
     return (
         <div className="overflow-y-auto h-full bg-white flex flex-col">
             
-            <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 z-10 flex justify-between items-center shadow-sm">
-                <div className="flex items-center gap-3">
-                    <h2 className="font-bold text-lg text-slate-800">Resultaten</h2>
-                    {isLoading && (
-                         <span className="flex h-2 w-2 relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                        </span>
-                    )}
-                </div>
-                <span className="text-xs font-semibold bg-red-50 text-red-700 border border-red-100 px-2 py-1 rounded-full">
-                    {locations.length} adressen
-                </span>
+            <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 z-10 flex items-center gap-3 shadow-sm">
+                <h2 className="font-bold text-lg text-slate-900">
+                    {locations.length} adressen gevonden
+                </h2>
+                {isLoading && (
+                        <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                )}
             </div>
             <ul className="divide-y divide-slate-100 pb-20">
                 {locations.map((loc) => {
                     const isSelected = selectedLocationId === loc.address;
                     
-                    // Extract unique years and sort descending (newest top)
-                    const years = Array.from(new Set(loc.permits.map(p => p.date.substring(0, 4))))
-                        .sort((a: string, b: string) => b.localeCompare(a));
+                    // Set of years for this location for O(1) lookup
+                    const permitYears = new Set(loc.permits.map(p => p.date.substring(0, 4)));
 
                     return (
                         <li 
                             key={loc.address}
+                            id={`loc-${loc.address}`}
                             onClick={() => onSelect(loc)}
-                            className={`px-6 py-4 cursor-pointer transition-colors hover:bg-slate-50 flex justify-between items-start gap-4 ${isSelected ? 'bg-red-50 hover:bg-red-50' : ''}`}
+                            className={`px-6 py-4 cursor-pointer transition-colors hover:bg-slate-50 flex flex-col gap-2 border-l-4 ${
+                                isSelected 
+                                    ? 'bg-slate-100 border-slate-600' // Dark Gray border, Light Gray BG
+                                    : 'border-transparent'
+                            }`}
                         >
-                            {/* Address Column */}
-                            <div className="flex-1 min-w-0 pt-1">
-                                 <h3 className="font-medium text-slate-900 text-sm md:text-base truncate leading-tight">{loc.address}</h3>
+                            {/* Address Row */}
+                            <div className="min-w-0">
+                                 <h3 className={`font-medium text-sm md:text-base truncate leading-tight ${isSelected ? 'text-slate-900 font-bold' : 'text-slate-900'}`}>
+                                    {loc.address}
+                                 </h3>
                             </div>
                            
-                            {/* Years Column (Right Aligned, Stacked) */}
-                            <div className="flex flex-col items-end gap-1.5 flex-none">
-                                {years.length > 0 ? (
-                                    years.map(year => {
-                                        const isActiveYear = year === '2025';
+                            {/* Timeline Row */}
+                            <div className="flex items-center gap-1">
+                                {yearsRange.map(year => {
+                                    const yearStr = year.toString();
+                                    const hasPermit = permitYears.has(yearStr);
+                                    const isActiveYear = year === 2025;
+
+                                    if (hasPermit) {
                                         return (
                                             <span 
                                                 key={year} 
-                                                className={`text-[10px] px-2 py-0.5 rounded font-bold shadow-sm border leading-none ${
+                                                className={`text-[10px] w-9 py-0.5 text-center rounded font-bold shadow-sm border leading-none ${
                                                     isActiveYear 
-                                                        ? 'bg-emerald-100 text-emerald-700 border-emerald-200' // Keep functional green for status
+                                                        ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
                                                         : 'bg-slate-100 text-slate-500 border-slate-200'
                                                 }`}
                                             >
                                                 {year}
                                             </span>
                                         );
-                                    })
-                                ) : (
-                                    <span className="text-[10px] text-slate-400 italic">Geen data</span>
-                                )}
+                                    } else {
+                                        // White box with gray border placeholder (no text)
+                                        return (
+                                            <span 
+                                                key={year} 
+                                                className="block w-9 h-4 border border-slate-300 bg-white rounded"
+                                                aria-hidden="true"
+                                            />
+                                        );
+                                    }
+                                })}
                             </div>
                         </li>
                     );

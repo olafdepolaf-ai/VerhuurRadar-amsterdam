@@ -54,11 +54,6 @@ const FAQSection: React.FC = () => {
             />
 
             <FAQItem 
-                question="Gaat het aantal nachten omlaag in Centrum en De Pijp?"
-                answer={`Er is een voorstel om vanaf 1 april 2026 het maximum aantal nachten te verlagen van 30 naar 15 per jaar in specifieke wijken. Dit geldt voor Centrum (uitgezonderd Oostelijke Eilanden/Kadijken) en De Pijp.\n\nDit betreft de gebieden: Haarlemmerbuurt, Jordaan, Grachtengordel (West/Zuid), Weteringschans, Burgwallen, Nieuwmarkt/Lastage, Weesperbuurt/Plantage, en de Oude en Nieuwe Pijp. Als u tussen januari en april 2026 al 15 nachten heeft verhuurd, mag u de rest van het jaar niet meer verhuren.`}
-            />
-
-            <FAQItem 
                 question="Wat zijn de regels en voorwaarden?"
                 answer={`U moet hoofdbewoner zijn en ingeschreven staan op het adres. Verhuur is toegestaan voor maximaal 30 nachten per jaar en aan maximaal 4 personen per keer.\n\nWoont u in een appartementencomplex? Let op: als de Vereniging van Eigenaren (VvE) of het splitsingsreglement vakantieverhuur verbiedt, is dit leidend. Ook als u een vergunning van de gemeente heeft, kan de VvE u het verhuren verbieden.\n\nDaarnaast: Elke vakantieverhuur moet vooraf gemeld worden. Sociale huurwoningen, tuinhuisjes, tenten en bootjes mogen niet verhuurd worden.`}
                 link="https://www.amsterdam.nl/wonen-leven/wonen/vakantieverhuur/"
@@ -70,14 +65,19 @@ const FAQSection: React.FC = () => {
                 answer={`Een vergunning kost in 2025 € 73,30. De vergunning is geldig tot 1 april van het volgende kalenderjaar, ongeacht wanneer u deze aanvraagt. Na aanvraag ontvangt u de vergunning doorgaans binnen 5 dagen.`}
             />
 
+             <FAQItem 
+                question="Betekent een vergunning ook verhuur?"
+                answer="Nee. Een vergunning geeft het récht om te verhuren, maar betekent niet dat er daadwerkelijk gasten zijn geweest. Die specifieke bezettingsdata (de meldplicht rapportages) is niet openbaar."
+            />
+
             <FAQItem 
                 question="Hoe hoog zijn de boetes?"
                 answer={`De gemeente controleert actief. Voor verhuur zonder vergunning of het niet vooraf melden van een verblijf ('meldplicht') riskeert u een boete van € 1.500,- als particulier en € 3.000,- bij bedrijfsmatige verhuur.`}
             />
 
-             <FAQItem 
-                question="Betekent een vergunning ook verhuur?"
-                answer="Nee. Een vergunning geeft het récht om te verhuren, maar betekent niet dat er daadwerkelijk gasten zijn geweest. Die specifieke bezettingsdata (de meldplicht rapportages) is niet openbaar."
+            <FAQItem 
+                question="Gaat het aantal nachten omlaag in Centrum en De Pijp?"
+                answer={`Er is een voorstel om vanaf 1 april 2026 het maximum aantal nachten te verlagen van 30 naar 15 per jaar in specifieke wijken. Dit geldt voor Centrum (uitgezonderd Oostelijke Eilanden/Kadijken) en De Pijp.\n\nDit betreft de gebieden: Haarlemmerbuurt, Jordaan, Grachtengordel (West/Zuid), Weteringschans, Burgwallen, Nieuwmarkt/Lastage, Weesperbuurt/Plantage, en de Oude en Nieuwe Pijp. Als u tussen januari en april 2026 al 15 nachten heeft verhuurd, mag u de rest van het jaar niet meer verhuren.`}
             />
         </div>
     );

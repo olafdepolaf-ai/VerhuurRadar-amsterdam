@@ -3,7 +3,6 @@ import AddressSearch from './components/AddressSearch';
 import MapComponent from './components/MapComponent';
 import ResultList from './components/ResultList';
 import StatsWidget from './components/StatsWidget';
-import DebugConsole from './components/DebugConsole'; 
 import FAQSection from './components/FAQSection';
 import { AddressResult, GroupedLocation, PermitRecord, PermitStatus, LatLngCoordinate } from './types';
 import { fetchPermitsForYear, fetchRecentPermits, fetchActivePermitCount } from './services/apiService';
@@ -199,14 +198,14 @@ function App() {
                 {/* Logo / Header */}
                 <div className="mb-6 flex items-center justify-center gap-3">
                     <VerhuurRadarIcon className="w-14 h-14 md:w-16 md:h-16 shadow-lg rounded-full" />
-                    <h1 className="text-4xl font-bold tracking-tight">
+                    <h1 className="text-5xl font-bold tracking-tight">
                       <span className="text-slate-900">Verhuur</span>
                       <span className="text-red-600">Radar</span>
                     </h1>
                 </div>
 
                 <p className="text-lg text-slate-600 max-w-lg mx-auto leading-relaxed mb-8">
-                  Snel inzicht in alle vergunningen voor vakantieverhuur in Amsterdam.
+                  Inzicht in alle vergunningen voor vakantieverhuur in Amsterdam.
                 </p>
                 
                 <div className="w-full relative z-20 mb-10">
@@ -249,7 +248,7 @@ function App() {
                                 rel="noopener noreferrer"
                                 className="text-red-600 hover:text-red-800 text-sm font-semibold hover:underline inline-flex items-center gap-1"
                              >
-                                Meer info op Amsterdam.nl
+                                Meer info op amsterdam.nl
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                                   <path fillRule="evenodd" d="M5 10a.75.75 0 01.75-.75h6.638L10.23 7.29a.75.75 0 111.04-1.08l3.5 3.25a.75.75 0 010 1.08l-3.5 3.25a.75.75 0 11-1.04-1.08l2.158-1.96H5.75A.75.75 0 015 10z" clipRule="evenodd" />
                                 </svg>
@@ -294,51 +293,42 @@ function App() {
                 >
                     <VerhuurRadarIcon className="w-8 h-8 shadow-sm rounded-full" />
                     <div className="flex flex-col leading-none justify-center">
-                        <span className="font-bold text-lg tracking-tight">
+                        <span className="font-bold text-xl tracking-tight">
                             <span className="text-slate-900">Verhuur</span><span className="text-red-600">Radar</span>
                         </span>
                     </div>
                 </div>
                 
-                <button onClick={handleReset} className="p-2 -mr-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+                {/* Search Bar aligned to the left (by taking up space) */}
+                <div className="hidden md:block flex-1 max-w-md mx-6">
+                    <AddressSearch 
+                        onAddressSelect={handleAddressSelect} 
+                        isCompact={true} 
+                        initialValue={currentAddress?.weergavenaam}
+                    />
+                </div>
             </header>
 
             {/* Content Container */}
             <div className="flex-1 flex flex-col md:flex-row relative overflow-hidden">
                 
-                {/* Header Overlay */}
-                <div className="absolute top-0 left-0 w-full z-[1000] p-4 md:p-6 pointer-events-none">
-                    <div className="w-full flex flex-col md:flex-row items-start md:items-center gap-4 pointer-events-auto justify-between">
-                        <div className="flex-1 w-full md:w-auto md:max-w-md bg-white/90 backdrop-blur-md shadow-lg border border-white/50 rounded-xl p-2 flex gap-2 items-center">
-                            <button 
-                                onClick={handleReset}
-                                className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                                </svg>
-                            </button>
-                            <div className="flex-1 min-w-0">
-                                 <AddressSearch 
-                                    onAddressSelect={handleAddressSelect} 
-                                    isCompact={true} 
-                                    initialValue={currentAddress?.weergavenaam}
-                                 />
-                            </div>
-                        </div>
-
-                        <div className="w-full md:w-auto">
-                            <StatsWidget permits={foundPermits} />
-                        </div>
+                {/* Mobile Search Overlay */}
+                <div className="md:hidden absolute top-0 left-0 w-full z-[1000] p-4 pointer-events-none">
+                    <div className="w-full bg-white/90 backdrop-blur-md shadow-lg border border-white/50 rounded-xl p-2 pointer-events-auto">
+                        <AddressSearch 
+                            onAddressSelect={handleAddressSelect} 
+                            isCompact={true} 
+                            initialValue={currentAddress?.weergavenaam}
+                        />
                     </div>
                 </div>
 
                 {/* Map Area */}
-                <div className="h-[55vh] md:h-full md:flex-1 relative order-1 md:order-2 pt-24 md:pt-0">
+                <div className="h-[55vh] md:h-full md:flex-1 relative order-1 md:order-2 pt-16 md:pt-0">
+                     <div className="absolute top-4 right-4 z-[999] pointer-events-auto">
+                         <StatsWidget permits={foundPermits} />
+                     </div>
+
                      <MapComponent 
                         center={userLocation}
                         locations={groupedLocations}
@@ -359,7 +349,7 @@ function App() {
                 </div>
 
                 {/* List Area */}
-                <div className="h-[45vh] md:h-full md:w-96 bg-white border-t md:border-t-0 md:border-r border-slate-200 shadow-xl z-10 flex flex-col order-2 md:order-1 pt-0 md:pt-24">
+                <div className="h-[45vh] md:h-full w-full md:w-80 min-w-[300px] bg-white border-t md:border-t-0 md:border-r border-slate-200 shadow-xl z-10 flex flex-col order-2 md:order-1 pt-0 md:pt-0">
                     <ResultList 
                         locations={groupedLocations} 
                         onSelect={(loc) => setSelectedLocationId(loc.address)}
@@ -371,9 +361,6 @@ function App() {
             </div>
         </div>
       )}
-      
-      {/* Debug Console - Always present */}
-      <DebugConsole />
     </div>
   );
 }

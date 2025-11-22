@@ -15,7 +15,9 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
     const [isLoading, setIsLoading] = useState(false);
     const [isSelecting, setIsSelecting] = useState(false);
     const [noResults, setNoResults] = useState(false);
+    const [focusedIndex, setFocusedIndex] = useState(-1); // Track keyboard navigation
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const listRef = useRef<HTMLUListElement>(null);
 
     // Update query if initialValue changes externally
     useEffect(() => {
@@ -33,6 +35,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
                 setNoResults(false);
                 const results = await searchAddress(query);
                 setSuggestions(results);
+                setFocusedIndex(-1); // Reset focus on new results
                 setIsLoading(false);
                 
                 if (results.length > 0) {
@@ -45,17 +48,49 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
                 setSuggestions([]);
                 setIsOpen(false);
                 setNoResults(false);
+                setFocusedIndex(-1);
             }
         }, 300);
 
         return () => clearTimeout(timer);
     }, [query, initialValue]);
 
+    // Keyboard Navigation Handler
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (!isOpen || suggestions.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setFocusedIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : 0));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setFocusedIndex(prev => (prev > 0 ? prev - 1 : suggestions.length - 1));
+        } else if (e.key === 'Enter') {
+            if (focusedIndex >= 0 && suggestions[focusedIndex]) {
+                e.preventDefault(); // Prevent form submit
+                handleSelect(suggestions[focusedIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            setIsOpen(false);
+        }
+    };
+
+    // Auto-scroll to focused item
+    useEffect(() => {
+        if (focusedIndex >= 0 && listRef.current) {
+            const listItems = listRef.current.children;
+            if (listItems[focusedIndex]) {
+                listItems[focusedIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }
+    }, [focusedIndex]);
+
     const handleSelect = async (item: AddressResult) => {
         setQuery(item.weergavenaam);
         setIsOpen(false);
         setNoResults(false);
         setIsSelecting(true);
+        setFocusedIndex(-1);
         
         try {
             const fullDetails = await lookupAddress(item.id);
@@ -73,6 +108,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
         e.preventDefault();
         if (query.length < 3 || isSelecting) return;
 
+        // If user hit enter without highlighting anything, assume top result or perform search
         setIsOpen(false);
         setIsSelecting(true);
 
@@ -80,6 +116,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
             let targetId = '';
             
             if (suggestions.length > 0) {
+                // If suggestions exist but user didn't pick one, pick the first
                 targetId = suggestions[0].id;
                 setQuery(suggestions[0].weergavenaam);
             } else {
@@ -129,6 +166,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
                         placeholder="Type een adres in Amsterdam..."
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
+                        onKeyDown={handleKeyDown}
                         onFocus={() => {
                             if (query.length >= 2 && !initialValue) setIsOpen(true);
                         }}
@@ -152,14 +190,18 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
             {isOpen && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 max-h-72 overflow-y-auto overflow-x-hidden z-[100]">
                     {suggestions.length > 0 ? (
-                        <ul className="divide-y divide-slate-50">
-                            {suggestions.map((item) => (
+                        <ul ref={listRef} className="divide-y divide-slate-50">
+                            {suggestions.map((item, index) => (
                                 <li 
                                     key={item.id}
                                     onClick={() => handleSelect(item)}
-                                    className="px-6 py-3 hover:bg-red-50 cursor-pointer text-slate-700 transition-colors text-left flex items-center gap-3 group"
+                                    className={`px-6 py-3 cursor-pointer text-slate-700 transition-colors text-left flex items-center gap-3 group ${
+                                        index === focusedIndex ? 'bg-red-50' : 'hover:bg-red-50'
+                                    }`}
                                 >
-                                    <span className="bg-slate-100 group-hover:bg-white p-1.5 rounded text-slate-400 transition-colors">
+                                    <span className={`p-1.5 rounded transition-colors ${
+                                        index === focusedIndex ? 'bg-white text-red-500' : 'bg-slate-100 text-slate-400 group-hover:bg-white'
+                                    }`}>
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
                                           <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                                         </svg>

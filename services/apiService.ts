@@ -1,6 +1,5 @@
 import { AddressResult, PermitRecord, RDCoordinate } from "../types";
 import { rdToWgs84 } from "./geoService";
-import { Logger } from "./logger";
 
 const PDOK_SUGGEST_URL = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/suggest";
 const PDOK_LOOKUP_URL = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/lookup";
@@ -8,7 +7,7 @@ const OVERHEID_SRU_URL = "https://repository.overheid.nl/sru";
 
 // Helper to cycle through proxies if one fails
 const fetchWithProxy = async (targetUrl: string): Promise<string> => {
-    Logger.info(`Fetching URL via Proxy:`, targetUrl);
+    console.info(`Fetching URL via Proxy:`, targetUrl);
     
     const proxies = [
         (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
@@ -24,15 +23,15 @@ const fetchWithProxy = async (targetUrl: string): Promise<string> => {
             const response = await fetch(finalUrl);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const text = await response.text();
-            Logger.success(`Data received (${text.length} bytes)`);
+            console.log(`Data received (${text.length} bytes)`);
             return text;
         } catch (e) {
-            Logger.warn(`Proxy attempt failed: ${e}`);
+            console.warn(`Proxy attempt failed: ${e}`);
             lastError = e;
         }
     }
     const err = lastError || new Error("Network request failed via all proxies");
-    Logger.error(`All proxies failed`, err);
+    console.error(`All proxies failed`, err);
     throw err;
 };
 
@@ -47,7 +46,7 @@ export const searchAddress = async (query: string): Promise<AddressResult[]> => 
             weergavenaam: doc.weergavenaam
         }));
     } catch (error) {
-        Logger.error("PDOK Search error", error);
+        console.error("PDOK Search error", error);
         return [];
     }
 };
@@ -59,13 +58,13 @@ export const lookupAddress = async (id: string): Promise<AddressResult | null> =
         const data = await response.json();
         return data.response.docs.length > 0 ? data.response.docs[0] : null;
     } catch (error) {
-        Logger.error("PDOK Lookup error", error);
+        console.error("PDOK Lookup error", error);
         return null;
     }
 };
 
 export const fetchRecentPermits = async (): Promise<PermitRecord[]> => {
-    Logger.info("Starting Health Check: Fetching 3 recent permits...");
+    console.info("Starting Health Check: Fetching 3 recent permits...");
     const center = { x: 121500, y: 487000 }; 
     const radiusKm = 15; 
     
@@ -104,7 +103,7 @@ export const fetchRecentPermits = async (): Promise<PermitRecord[]> => {
         // Pass false to 'requireCoordinates' so we don't drop recent permits with bad geo data
         return parseXMLResponse(xmlText, currentYear, false);
     } catch (error) {
-        Logger.error("Recent Fetch error", error);
+        console.error("Recent Fetch error", error);
         return [];
     }
 }
@@ -159,13 +158,13 @@ export const fetchActivePermitCount = async (): Promise<number | null> => {
         }
         return null;
     } catch (error) {
-        Logger.error("Active Count Fetch Error", error);
+        console.error("Active Count Fetch Error", error);
         return null;
     }
 };
 
 export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: number, year: number): Promise<PermitRecord[]> => {
-    Logger.info(`Searching year ${year} radius ${radiusMeters}m...`);
+    console.info(`Searching year ${year} radius ${radiusMeters}m...`);
     const startDate = `${year}-01-01`;
     const endDate = `${year}-12-31`;
     const x = Math.round(center.x);
@@ -202,7 +201,7 @@ export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: nu
         // For map plotting, we REQUIRE valid coordinates, so pass true
         return parseXMLResponse(xmlText, year, true);
     } catch (error) {
-        Logger.error(`SRU Fetch error for ${year}`, error);
+        console.error(`SRU Fetch error for ${year}`, error);
         return [];
     }
 };
@@ -233,7 +232,7 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
         
         const records = findAllNodesByLocalName(xmlDoc, "record");
-        Logger.info(`Parsed ${records.length} records from XML.`);
+        console.log(`Parsed ${records.length} records from XML.`);
         const results: PermitRecord[] = [];
 
         records.forEach((record, index) => {
@@ -320,12 +319,12 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
         });
 
         if (records.length > 0 && results.length === 0 && requireCoordinates) {
-            Logger.warn("Found records but all were dropped due to missing/invalid coordinates.");
+            console.warn("Found records but all were dropped due to missing/invalid coordinates.");
         }
 
         return results;
     } catch (docError) {
-        Logger.error("XML parsing failed completely", docError);
+        console.error("XML parsing failed completely", docError);
         return [];
     }
 };
