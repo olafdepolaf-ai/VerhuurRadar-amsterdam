@@ -12,8 +12,8 @@ interface ResultListProps {
 
 const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLocationId, isLoading = false, loadingStatus = "" }) => {
     
-    // Define the range of years we track (Removed 2020)
-    const yearsRange = [2021, 2022, 2023, 2024, 2025];
+    // Define the range of years we track (Descending order: 2025 on left)
+    const yearsRange = [2025, 2024, 2023, 2022, 2021];
 
     // Auto-scroll to selected item
     useEffect(() => {

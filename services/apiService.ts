@@ -6,9 +6,57 @@ const PDOK_SUGGEST_URL = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/sugg
 const PDOK_LOOKUP_URL = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/lookup";
 const OVERHEID_SRU_URL = "https://repository.overheid.nl/sru";
 
+// --- Caching Logic ---
+
+interface CacheEntry<T> {
+    timestamp: number;
+    data: T;
+}
+
+const CACHE_PREFIX = "vr_cache_";
+
+function getFromCache<T>(key: string, ttlSeconds: number): T | null {
+    try {
+        const fullKey = CACHE_PREFIX + key;
+        const item = localStorage.getItem(fullKey);
+        if (!item) return null;
+
+        const entry: CacheEntry<T> = JSON.parse(item);
+        const now = Date.now();
+        const ageSeconds = (now - entry.timestamp) / 1000;
+
+        if (ageSeconds < ttlSeconds) {
+            // console.debug(`[Cache Hit] ${key} (${Math.round(ageSeconds)}s old)`);
+            return entry.data;
+        } else {
+            // console.debug(`[Cache Expired] ${key}`);
+            localStorage.removeItem(fullKey);
+            return null;
+        }
+    } catch (e) {
+        return null;
+    }
+}
+
+function saveToCache<T>(key: string, data: T) {
+    try {
+        const fullKey = CACHE_PREFIX + key;
+        const entry: CacheEntry<T> = {
+            timestamp: Date.now(),
+            data: data
+        };
+        localStorage.setItem(fullKey, JSON.stringify(entry));
+        
+        // Simple cleanup: if localstorage gets too full/old, we could implement LRU, 
+        // but for text data usually fine.
+    } catch (e) {
+        console.warn("Failed to save to cache (Quota exceeded?)", e);
+    }
+}
+
 // Helper to cycle through proxies if one fails
 const fetchWithProxy = async (targetUrl: string): Promise<string> => {
-    console.info(`Fetching URL via Proxy:`, targetUrl);
+    // console.info(`Fetching URL via Proxy:`, targetUrl);
     
     const proxies = [
         (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
@@ -24,7 +72,7 @@ const fetchWithProxy = async (targetUrl: string): Promise<string> => {
             const response = await fetch(finalUrl);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const text = await response.text();
-            console.log(`Data received (${text.length} bytes)`);
+            // console.log(`Data received (${text.length} bytes)`);
             return text;
         } catch (e) {
             console.warn(`Proxy attempt failed: ${e}`);
@@ -38,14 +86,21 @@ const fetchWithProxy = async (targetUrl: string): Promise<string> => {
 
 export const searchAddress = async (query: string): Promise<AddressResult[]> => {
     if (query.length < 3) return [];
+    // Short cache for suggestions (1 hour) to keep UI snappy
+    const cacheKey = `suggest_${query.toLowerCase()}`;
+    const cached = getFromCache<AddressResult[]>(cacheKey, 3600);
+    if (cached) return cached;
+
     const url = `${PDOK_SUGGEST_URL}?q=${encodeURIComponent(query)}&fq=gemeentenaam:Amsterdam&rows=7&wt=json`;
     try {
         const response = await fetch(url);
         const data = await response.json();
-        return data.response.docs.map((doc: any) => ({
+        const results = data.response.docs.map((doc: any) => ({
             id: doc.id,
             weergavenaam: doc.weergavenaam
         }));
+        saveToCache(cacheKey, results);
+        return results;
     } catch (error) {
         console.error("PDOK Search error", error);
         return [];
@@ -53,11 +108,18 @@ export const searchAddress = async (query: string): Promise<AddressResult[]> => 
 };
 
 export const lookupAddress = async (id: string): Promise<AddressResult | null> => {
+    // Address details don't change often. Cache for 7 days.
+    const cacheKey = `lookup_${id}`;
+    const cached = getFromCache<AddressResult>(cacheKey, 7 * 24 * 3600);
+    if (cached) return cached;
+
     const url = `${PDOK_LOOKUP_URL}?id=${encodeURIComponent(id)}&fl=id,weergavenaam,centroide_rd,centroide_ll&wt=json`;
     try {
         const response = await fetch(url);
         const data = await response.json();
-        return data.response.docs.length > 0 ? data.response.docs[0] : null;
+        const result = data.response.docs.length > 0 ? data.response.docs[0] : null;
+        if (result) saveToCache(cacheKey, result);
+        return result;
     } catch (error) {
         console.error("PDOK Lookup error", error);
         return null;
@@ -65,7 +127,12 @@ export const lookupAddress = async (id: string): Promise<AddressResult | null> =
 };
 
 export const fetchRecentPermits = async (): Promise<PermitRecord[]> => {
-    console.info("Starting Health Check: Fetching 3 recent permits...");
+    // Recent permits homepage list. Cache for 6 hours.
+    const cacheKey = `recent_permits_v2`;
+    const cached = getFromCache<PermitRecord[]>(cacheKey, 6 * 3600);
+    if (cached) return cached;
+
+    console.info("Fetching recent permits...");
     const center = { x: 121500, y: 487000 }; 
     const radiusKm = 15; 
     
@@ -102,7 +169,9 @@ export const fetchRecentPermits = async (): Promise<PermitRecord[]> => {
     try {
         const xmlText = await fetchWithProxy(targetUrl);
         // Pass false to 'requireCoordinates' so we don't drop recent permits with bad geo data
-        return parseXMLResponse(xmlText, currentYear, false);
+        const results = parseXMLResponse(xmlText, currentYear, false);
+        saveToCache(cacheKey, results);
+        return results;
     } catch (error) {
         console.error("Recent Fetch error", error);
         return [];
@@ -110,17 +179,12 @@ export const fetchRecentPermits = async (): Promise<PermitRecord[]> => {
 }
 
 export const fetchActivePermitCount = async (): Promise<number | null> => {
-    const CACHE_KEY_DATE = 'buurtchecker_count_date';
-    const CACHE_KEY_VAL = 'buurtchecker_count_val';
+    // Daily cache (24 hours)
+    const cacheKey = `active_count_val`;
+    const cached = getFromCache<number>(cacheKey, 24 * 3600);
+    if (cached !== null) return cached;
+
     const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-
-    const cachedDate = localStorage.getItem(CACHE_KEY_DATE);
-    const cachedVal = localStorage.getItem(CACHE_KEY_VAL);
-    if (cachedDate === todayStr && cachedVal) {
-        return parseInt(cachedVal, 10);
-    }
-
     const currentYear = today.getFullYear();
     const isGracePeriod = today.getMonth() <= 2; 
     const startYear = isGracePeriod ? currentYear - 1 : currentYear;
@@ -153,8 +217,7 @@ export const fetchActivePermitCount = async (): Promise<number | null> => {
         
         if (countNode && countNode.textContent) {
             const count = parseInt(countNode.textContent, 10);
-            localStorage.setItem(CACHE_KEY_DATE, todayStr);
-            localStorage.setItem(CACHE_KEY_VAL, count.toString());
+            saveToCache(cacheKey, count);
             return count;
         }
         return null;
@@ -165,12 +228,29 @@ export const fetchActivePermitCount = async (): Promise<number | null> => {
 };
 
 export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: number, year: number): Promise<PermitRecord[]> => {
-    console.info(`Searching year ${year} radius ${radiusMeters}m...`);
-    const startDate = `${year}-01-01`;
-    const endDate = `${year}-12-31`;
     const x = Math.round(center.x);
     const y = Math.round(center.y);
     
+    // Create a unique cache key for this specific search
+    const cacheKey = `permits_${x}_${y}_${radiusMeters}_${year}`;
+
+    // Determine TTL
+    const currentYear = new Date().getFullYear();
+    let ttl = 90 * 24 * 3600; // Default: 90 days (Historical data)
+    
+    if (year === currentYear) {
+        // Current year: Cache for 6 hours (Refresh ~4 times a day: Morning, Noon, Evening, Night)
+        ttl = 6 * 3600; 
+    }
+
+    const cached = getFromCache<PermitRecord[]>(cacheKey, ttl);
+    if (cached) {
+        return cached;
+    }
+
+    console.info(`Searching year ${year} radius ${radiusMeters}m...`);
+    const startDate = `${year}-01-01`;
+    const endDate = `${year}-12-31`;
     const radiusKm = radiusMeters / 1000;
 
     const spatialClause = `w.locatiepunt within/rijksdriehoek "${x} ${y} ${radiusKm}"`;
@@ -200,7 +280,9 @@ export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: nu
     try {
         const xmlText = await fetchWithProxy(targetUrl);
         // For map plotting, we REQUIRE valid coordinates, so pass true
-        return parseXMLResponse(xmlText, year, true);
+        const results = parseXMLResponse(xmlText, year, true);
+        saveToCache(cacheKey, results);
+        return results;
     } catch (error) {
         console.error(`SRU Fetch error for ${year}`, error);
         return [];
@@ -209,11 +291,6 @@ export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: nu
 
 const validateAndFixRD = (rd: { x: number, y: number }): { x: number, y: number } | null => {
     let { x, y } = rd;
-
-    // Check if WGS84 (Lat/Lng) instead of RD
-    // Lat ~52, Lng ~4.8. RD is > 10000.
-    // If small numbers, we assume it's already WGS84, but this function returns RD.
-    // We handle this in parseXMLResponse now.
     
     if (x > 300000 && y < 300000) {
         const temp = x;
@@ -233,7 +310,7 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
         
         const records = findAllNodesByLocalName(xmlDoc, "record");
-        console.log(`Parsed ${records.length} records from XML.`);
+        // console.log(`Parsed ${records.length} records from XML.`);
         const results: PermitRecord[] = [];
 
         records.forEach((record, index) => {
@@ -244,9 +321,6 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
                 // Construct URL
                 let url = identifier;
                 if (identifier && !identifier.startsWith('http')) {
-                    // Usually identifiers are like "gmb-2025-12345". 
-                    // The public URL is often https://zoek.officielebekendmakingen.nl/{identifier}.html
-                    // We append .html to ensure it opens correctly
                     url = `https://zoek.officielebekendmakingen.nl/${identifier}.html`;
                 }
 
@@ -284,13 +358,9 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
 
                         // Check if it's Lat/Lng (Small numbers)
                         if (v1 < 100 && v2 < 100) {
-                             // Assuming Lat Lng (e.g. 52.3 4.9)
-                             // API usually gives Lat Lng in 'locatiepunt'
                              wgs = { lat: v1, lng: v2 };
-                             // Fake RD to satisfy interface if needed, or leave undefined
                              rd = { x: 0, y: 0 }; 
                         } else {
-                            // Assume RD (Large numbers)
                             rd = { x: v1, y: v2 };
                         }
                     }
@@ -299,7 +369,6 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
                 if (requireCoordinates) {
                     // We strictly need valid coordinates to plot on map
                     if (wgs) {
-                         // We have direct WGS
                          results.push({ id: identifier, title: rawTitle, date: dateStr, address, coordinates: rd!, wgs84: wgs, url });
                     } else if (rd) {
                         const validRD = validateAndFixRD(rd);
@@ -311,8 +380,6 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
                         }
                     }
                 } else {
-                    // Loose mode (for Recent list), take whatever we have
-                    // Even if no coords, push the record
                      results.push({ 
                         id: identifier, 
                         title: rawTitle, 
@@ -328,10 +395,6 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
                 // ignore single failure
             }
         });
-
-        if (records.length > 0 && results.length === 0 && requireCoordinates) {
-            console.warn("Found records but all were dropped due to missing/invalid coordinates.");
-        }
 
         return results;
     } catch (docError) {

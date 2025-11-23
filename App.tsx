@@ -328,7 +328,7 @@ function App() {
                         onAddressSelect={handleAddressSelect} 
                         isCompact={true} 
                         initialValue={currentAddress?.weergavenaam}
-                        onClear={handleReset}
+                        onClear={() => {}} // Pass empty function to allow clear without reset
                     />
                 </div>
             </header>
@@ -343,7 +343,7 @@ function App() {
                             onAddressSelect={handleAddressSelect} 
                             isCompact={true} 
                             initialValue={currentAddress?.weergavenaam}
-                            onClear={handleReset}
+                            onClear={() => {}} // Pass empty function to allow clear without reset
                         />
                     </div>
                 </div>

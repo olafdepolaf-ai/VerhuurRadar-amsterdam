@@ -33,16 +33,16 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
     useEffect(() => {
         if (!containerRef.current || mapRef.current) return;
 
-        // Default zoom 20
+        // Default zoom 18
         mapRef.current = L.map(containerRef.current, {
             zoomControl: false,
             attributionControl: false
-        }).setView([center.lat, center.lng], 20);
+        }).setView([center.lat, center.lng], 18);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
             subdomains: 'abcd',
-            maxZoom: 21
+            maxZoom: 22
         }).addTo(mapRef.current);
 
         L.control.zoom({ position: 'bottomright' }).addTo(mapRef.current);

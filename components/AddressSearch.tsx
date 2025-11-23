@@ -20,6 +20,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
     const [focusedIndex, setFocusedIndex] = useState(-1); // Track keyboard navigation
     const wrapperRef = useRef<HTMLDivElement>(null);
     const listRef = useRef<HTMLUListElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     // Update query if initialValue changes externally
     useEffect(() => {
@@ -154,6 +155,10 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
         if (onClear) {
             onClear();
         }
+        // Focus the input so user can type immediately
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
     };
 
     useEffect(() => {
@@ -176,6 +181,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
             >
                 <div className="flex-1 relative h-full">
                     <input
+                        ref={inputRef}
                         type="text"
                         className={`w-full h-full bg-transparent outline-none text-slate-900 placeholder-slate-400 ${isCompact ? 'px-3 text-sm' : 'px-6 text-lg'}`}
                         placeholder="Type een adres in Amsterdam..."
@@ -196,7 +202,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
                         className={`bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors flex items-center justify-center ${isCompact ? 'w-10 px-0' : 'w-14 px-0'}`}
                         title="Zoekopdracht wissen"
                     >
-                        {/* New styling: Black border, black text, transparent background inside */}
+                        {/* High contrast: Transparent circle with black border and black X */}
                         <div className="rounded-full p-1 border border-slate-900 text-slate-900 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
                                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
