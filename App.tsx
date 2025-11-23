@@ -66,6 +66,7 @@ function App() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [recentPermits, setRecentPermits] = useState<PermitRecord[]>([]);
   const [totalActiveCount, setTotalActiveCount] = useState<number | null>(null);
+  const [isMobileListCollapsed, setIsMobileListCollapsed] = useState(false);
 
   // Load latest permits and total count on mount
   useEffect(() => {
@@ -184,6 +185,7 @@ function App() {
     setCurrentAddress(null);
     setUserLocation(null);
     setErrorMsg(null);
+    setIsMobileListCollapsed(false); // Reset mobile collapse
   };
 
   const handleRecentPermitClick = async (address: string) => {
@@ -348,8 +350,8 @@ function App() {
                     </div>
                 </div>
 
-                {/* Map Area */}
-                <div className="h-[55vh] md:h-full md:flex-1 relative order-1 md:order-2 pt-16 md:pt-0">
+                {/* Map Area - Flex 1 to take remaining space when list collapses */}
+                <div className="flex-1 relative order-1 md:order-2 pt-16 md:pt-0">
                      <div className="absolute top-4 right-4 z-[999] pointer-events-auto">
                          <StatsWidget permits={foundPermits} />
                      </div>
@@ -365,13 +367,15 @@ function App() {
                 </div>
 
                 {/* List Area */}
-                <div className="h-[45vh] md:h-full w-full md:w-72 min-w-[288px] bg-white border-t md:border-t-0 md:border-r border-slate-200 shadow-xl z-10 flex flex-col order-2 md:order-1 pt-0 md:pt-0">
+                <div className={`w-full md:w-72 min-w-[288px] bg-white border-t md:border-t-0 md:border-r border-slate-200 shadow-xl z-10 flex flex-col order-2 md:order-1 pt-0 md:pt-0 transition-all duration-300 ease-in-out ${isMobileListCollapsed ? 'h-14' : 'h-[45vh]'} md:h-full`}>
                     <ResultList 
                         locations={groupedLocations} 
                         onSelect={(loc) => setSelectedLocationId(loc.address)}
                         selectedLocationId={selectedLocationId}
                         isLoading={loading}
                         loadingStatus={loadingStatus}
+                        isMobileCollapsed={isMobileListCollapsed}
+                        onToggleMobileCollapse={() => setIsMobileListCollapsed(!isMobileListCollapsed)}
                     />
                 </div>
             </div>

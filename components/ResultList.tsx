@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { GroupedLocation, PermitStatus, PermitRecord } from '../types';
+import { GroupedLocation, PermitRecord } from '../types';
 
 interface ResultListProps {
     locations: GroupedLocation[];
@@ -8,64 +8,116 @@ interface ResultListProps {
     selectedLocationId?: string;
     isLoading?: boolean;
     loadingStatus?: string;
+    isMobileCollapsed?: boolean;
+    onToggleMobileCollapse?: () => void;
 }
 
-const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLocationId, isLoading = false, loadingStatus = "" }) => {
+const ResultList: React.FC<ResultListProps> = ({ 
+    locations, 
+    onSelect, 
+    selectedLocationId, 
+    isLoading = false, 
+    loadingStatus = "",
+    isMobileCollapsed = false,
+    onToggleMobileCollapse
+}) => {
     
     // Define the range of years we track (Descending order: 2025 on left)
     const yearsRange = [2025, 2024, 2023, 2022, 2021];
 
     // Auto-scroll to selected item
     useEffect(() => {
-        if (selectedLocationId) {
-            // Escape special characters for ID usage if necessary, but address usually works if simple
-            // Using a simpler approach: finding by data attribute or id
+        if (selectedLocationId && !isMobileCollapsed) {
             const element = document.getElementById(`loc-${selectedLocationId}`);
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
-    }, [selectedLocationId]);
+    }, [selectedLocationId, isMobileCollapsed]);
 
+    // Loading State
     if (isLoading && locations.length === 0) {
         return (
-            <div className="p-8 flex flex-col items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-4"></div>
-                <p className="text-slate-600 font-medium">Zoeken naar vergunningen...</p>
-                {loadingStatus && <p className="text-slate-400 text-sm mt-1">Jaargang {loadingStatus}</p>}
+            <div className="flex flex-col h-full bg-white">
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+                    <h2 className="font-bold text-lg text-slate-900">Zoeken...</h2>
+                     <span className="flex h-2 w-2 relative ml-auto">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                </div>
+                <div className="p-8 flex flex-col items-center justify-center flex-1">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-4"></div>
+                    <p className="text-slate-600 font-medium">Zoeken naar vergunningen...</p>
+                    {loadingStatus && <p className="text-slate-400 text-sm mt-1">Jaargang {loadingStatus}</p>}
+                </div>
             </div>
         );
     }
 
+    // No Results State
     if (!isLoading && locations.length === 0) {
         return (
-            <div className="p-8 text-center text-slate-500 h-full flex flex-col items-center justify-center">
-                <div className="bg-slate-100 p-4 rounded-full mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-slate-400">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
-                    </svg>
+            <div className="flex flex-col h-full bg-white">
+                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <h2 className="font-bold text-lg text-slate-900">0 adressen gevonden</h2>
+                     {/* Mobile Toggle for No Results too, in case user wants to see map */}
+                     {onToggleMobileCollapse && (
+                        <button onClick={onToggleMobileCollapse} className="md:hidden p-1">
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${isMobileCollapsed ? 'rotate-180' : ''}`}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </button>
+                    )}
                 </div>
-                <p className="font-medium text-slate-700">Geen vergunningen gevonden</p>
-                <p className="text-xs text-slate-400 mt-1">Binnen 200m straal</p>
+                <div className="p-8 text-center text-slate-500 flex-1 flex flex-col items-center justify-center">
+                    <div className="bg-slate-100 p-4 rounded-full mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-slate-400">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                        </svg>
+                    </div>
+                    <p className="font-medium text-slate-700">Geen vergunningen gevonden</p>
+                    <p className="text-xs text-slate-400 mt-1">Binnen 200m straal</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="overflow-y-auto h-full bg-white flex flex-col">
+        <div className="h-full bg-white flex flex-col overflow-hidden">
             
-            <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 z-10 flex items-center gap-3 shadow-sm">
-                <h2 className="font-bold text-lg text-slate-900">
-                    {locations.length} adressen gevonden
-                </h2>
-                {isLoading && (
+            {/* Header - Clickable on mobile to toggle */}
+            <div 
+                className="flex-none bg-white border-b border-slate-100 px-6 h-14 z-10 flex items-center justify-between shadow-sm cursor-pointer md:cursor-default"
+                onClick={onToggleMobileCollapse}
+            >
+                <div className="flex items-center gap-3">
+                    <h2 className="font-bold text-lg text-slate-900">
+                        {locations.length} adressen gevonden
+                    </h2>
+                    {isLoading && (
                         <span className="flex h-2 w-2 relative">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                    </span>
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                        </span>
+                    )}
+                </div>
+
+                {/* Mobile Collapse Toggle Icon */}
+                {onToggleMobileCollapse && (
+                    <button 
+                        className="md:hidden p-2 -mr-2 text-slate-500 hover:text-slate-800 focus:outline-none"
+                        aria-label={isMobileCollapsed ? "Lijst uitklappen" : "Lijst inklappen"}
+                    >
+                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 transition-transform duration-300 ${isMobileCollapsed ? 'rotate-180' : ''}`}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
                 )}
             </div>
-            <ul className="divide-y divide-slate-100 pb-20">
+
+            {/* List Content */}
+            <ul className="flex-1 overflow-y-auto divide-y divide-slate-100 pb-20">
                 {locations.map((loc) => {
                     const isSelected = selectedLocationId === loc.address;
                     
