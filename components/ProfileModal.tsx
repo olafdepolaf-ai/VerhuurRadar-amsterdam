@@ -24,16 +24,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[3000] flex items-center justify-center px-4">
-            {/* Backdrop */}
             <div 
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
                 onClick={onClose}
             />
 
-            {/* Modal Content */}
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in-up">
                 
-                {/* Close Button */}
                 {!showDeleteConfirmation && (
                     <button 
                         onClick={onClose}
@@ -46,7 +43,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                 )}
 
                 {!showDeleteConfirmation ? (
-                    // NORMAL PROFILE VIEW
                     <div className="p-8 flex flex-col items-center text-center">
                         <img 
                             src={userPhotoUrl} 
@@ -68,7 +64,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                             </div>
                             <div className="text-left">
                                 <p className="text-xs font-bold text-slate-700">Google Account</p>
-                                <p className="text-[10px] text-slate-400">Gekoppeld via Google Authorization</p>
+                                <p className="text-[10px] text-slate-400">Gekoppeld via Inloggen met Google</p>
                             </div>
                         </div>
 
@@ -80,7 +76,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                         </button>
                     </div>
                 ) : (
-                    // DELETE CONFIRMATION VIEW
                     <div className="p-8 flex flex-col items-center text-center">
                         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-red-600">
@@ -115,3 +110,4 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
 };
 
 export default ProfileModal;
+// Force Write: 1722421332906

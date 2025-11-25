@@ -30,7 +30,6 @@ class LoggerService {
         };
         this.listeners.forEach(l => l(entry));
         
-        // Also log to browser console
         const style = level === 'error' ? 'color: red' : level === 'success' ? 'color: green' : 'color: blue';
         console.log(`%c[VerhuurRadar] ${message}`, style, data || '');
     }
@@ -42,3 +41,5 @@ class LoggerService {
 }
 
 export const Logger = new LoggerService();
+
+// Force-Rewrite: 1722421332906

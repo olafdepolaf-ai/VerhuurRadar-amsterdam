@@ -26,10 +26,8 @@ function getFromCache<T>(key: string, ttlSeconds: number): T | null {
         const ageSeconds = (now - entry.timestamp) / 1000;
 
         if (ageSeconds < ttlSeconds) {
-            // console.debug(`[Cache Hit] ${key} (${Math.round(ageSeconds)}s old)`);
             return entry.data;
         } else {
-            // console.debug(`[Cache Expired] ${key}`);
             localStorage.removeItem(fullKey);
             return null;
         }
@@ -46,9 +44,6 @@ function saveToCache<T>(key: string, data: T) {
             data: data
         };
         localStorage.setItem(fullKey, JSON.stringify(entry));
-        
-        // Simple cleanup: if localstorage gets too full/old, we could implement LRU, 
-        // but for text data usually fine.
     } catch (e) {
         console.warn("Failed to save to cache (Quota exceeded?)", e);
     }
@@ -56,8 +51,6 @@ function saveToCache<T>(key: string, data: T) {
 
 // Helper to cycle through proxies if one fails
 const fetchWithProxy = async (targetUrl: string): Promise<string> => {
-    // console.info(`Fetching URL via Proxy:`, targetUrl);
-    
     const proxies = [
         (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
         (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
@@ -71,9 +64,7 @@ const fetchWithProxy = async (targetUrl: string): Promise<string> => {
             const finalUrl = proxyFn(targetUrl);
             const response = await fetch(finalUrl);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const text = await response.text();
-            // console.log(`Data received (${text.length} bytes)`);
-            return text;
+            return await response.text();
         } catch (e) {
             console.warn(`Proxy attempt failed: ${e}`);
             lastError = e;
@@ -86,7 +77,6 @@ const fetchWithProxy = async (targetUrl: string): Promise<string> => {
 
 export const searchAddress = async (query: string): Promise<AddressResult[]> => {
     if (query.length < 3) return [];
-    // Short cache for suggestions (1 hour) to keep UI snappy
     const cacheKey = `suggest_${query.toLowerCase()}`;
     const cached = getFromCache<AddressResult[]>(cacheKey, 3600);
     if (cached) return cached;
@@ -108,7 +98,6 @@ export const searchAddress = async (query: string): Promise<AddressResult[]> => 
 };
 
 export const lookupAddress = async (id: string): Promise<AddressResult | null> => {
-    // Address details don't change often. Cache for 7 days.
     const cacheKey = `lookup_${id}`;
     const cached = getFromCache<AddressResult>(cacheKey, 7 * 24 * 3600);
     if (cached) return cached;
@@ -127,16 +116,13 @@ export const lookupAddress = async (id: string): Promise<AddressResult | null> =
 };
 
 export const fetchRecentPermits = async (): Promise<PermitRecord[]> => {
-    // Recent permits homepage list. Cache for 6 hours.
     const cacheKey = `recent_permits_v2`;
     const cached = getFromCache<PermitRecord[]>(cacheKey, 6 * 3600);
     if (cached) return cached;
 
-    console.info("Fetching recent permits...");
     const center = { x: 121500, y: 487000 }; 
     const radiusKm = 15; 
     
-    // Wide date range to ensure we get data
     const startDate = "2024-01-01"; 
     const today = new Date();
     const endDate = today.toISOString().split('T')[0];
@@ -161,14 +147,12 @@ export const fetchRecentPermits = async (): Promise<PermitRecord[]> => {
         query: cqlQuery,
         maximumRecords: '3', 
         startRecord: '1',
-        _cb: Date.now().toString()
     });
 
     const targetUrl = `${OVERHEID_SRU_URL}?${params.toString()}`;
 
     try {
         const xmlText = await fetchWithProxy(targetUrl);
-        // Pass false to 'requireCoordinates' so we don't drop recent permits with bad geo data
         const results = parseXMLResponse(xmlText, currentYear, false);
         saveToCache(cacheKey, results);
         return results;
@@ -179,7 +163,6 @@ export const fetchRecentPermits = async (): Promise<PermitRecord[]> => {
 }
 
 export const fetchActivePermitCount = async (): Promise<number | null> => {
-    // Daily cache (24 hours)
     const cacheKey = `active_count_val`;
     const cached = getFromCache<number>(cacheKey, 24 * 3600);
     if (cached !== null) return cached;
@@ -204,7 +187,6 @@ export const fetchActivePermitCount = async (): Promise<number | null> => {
         query: cqlQuery,
         maximumRecords: '0', 
         startRecord: '1',
-        _cb: Date.now().toString()
     });
 
     const targetUrl = `${OVERHEID_SRU_URL}?${params.toString()}`;
@@ -231,24 +213,18 @@ export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: nu
     const x = Math.round(center.x);
     const y = Math.round(center.y);
     
-    // Create a unique cache key for this specific search
     const cacheKey = `permits_${x}_${y}_${radiusMeters}_${year}`;
 
-    // Determine TTL
     const currentYear = new Date().getFullYear();
-    let ttl = 90 * 24 * 3600; // Default: 90 days (Historical data)
+    let ttl = 90 * 24 * 3600; // 90 days for historical
     
     if (year === currentYear) {
-        // Current year: Cache for 6 hours (Refresh ~4 times a day: Morning, Noon, Evening, Night)
-        ttl = 6 * 3600; 
+        ttl = 6 * 3600; // 6 hours for current
     }
 
     const cached = getFromCache<PermitRecord[]>(cacheKey, ttl);
-    if (cached) {
-        return cached;
-    }
+    if (cached) return cached;
 
-    console.info(`Searching year ${year} radius ${radiusMeters}m...`);
     const startDate = `${year}-01-01`;
     const endDate = `${year}-12-31`;
     const radiusKm = radiusMeters / 1000;
@@ -272,14 +248,12 @@ export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: nu
         query: cqlQuery,
         maximumRecords: '50', 
         startRecord: '1',
-        _cb: Date.now().toString()
     });
 
     const targetUrl = `${OVERHEID_SRU_URL}?${params.toString()}`;
 
     try {
         const xmlText = await fetchWithProxy(targetUrl);
-        // For map plotting, we REQUIRE valid coordinates, so pass true
         const results = parseXMLResponse(xmlText, year, true);
         saveToCache(cacheKey, results);
         return results;
@@ -291,16 +265,8 @@ export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: nu
 
 const validateAndFixRD = (rd: { x: number, y: number }): { x: number, y: number } | null => {
     let { x, y } = rd;
-    
-    if (x > 300000 && y < 300000) {
-        const temp = x;
-        x = y;
-        y = temp;
-    }
-
-    if (x < 0 || x > 300000 || y < 300000 || y > 650000) {
-        return null; 
-    }
+    if (x > 300000 && y < 300000) { [x, y] = [y, x]; } // Swap
+    if (x < 0 || x > 300000 || y < 300000 || y > 650000) return null; 
     return { x, y };
 }
 
@@ -310,7 +276,6 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
         
         const records = findAllNodesByLocalName(xmlDoc, "record");
-        // console.log(`Parsed ${records.length} records from XML.`);
         const results: PermitRecord[] = [];
 
         records.forEach((record, index) => {
@@ -318,82 +283,47 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
                 const identifier = findValueByLocalName(record, "identifier") || `unknown-${index}-${yearContext}`;
                 const rawTitle = findValueByLocalName(record, "title") || "Onbekende vergunning";
                 
-                // Construct URL
                 let url = identifier;
                 if (identifier && !identifier.startsWith('http')) {
                     url = `https://zoek.officielebekendmakingen.nl/${identifier}.html`;
                 }
 
-                let dateStr = findValueByLocalName(record, "modified") || findValueByLocalName(record, "datumOntvangst");
-                if (dateStr) {
-                    dateStr = dateStr.split("T")[0]; 
-                } else {
-                    dateStr = `${yearContext}-01-01`;
-                }
+                let dateStr = findValueByLocalName(record, "modified") || `${yearContext}-01-01`;
+                if (dateStr) dateStr = dateStr.split("T")[0]; 
 
-                let address = rawTitle.replace(/Besluit vakantieverhuur vergunning Verleend/i, "").trim();
-                if (address.startsWith(",")) address = address.substring(1).trim();
+                let address = rawTitle.replace(/Besluit vakantieverhuur vergunning Verleend/i, "").trim().replace(/^,/, '').trim();
                 if (!address) address = "Adres onbekend";
 
                 let rd: { x: number, y: number } | null = null;
                 let wgs: { lat: number, lng: number } | null = null;
 
-                // Parsing Geometry
                 const puntNode = findNodeByLocalName(record, "Punt");
-                let rawCoordStr = "";
+                let locPunt = puntNode ? findValueByLocalName(puntNode, "locatiepunt") : findValueByLocalName(record, "locatiepunt");
+                let geom = puntNode ? findValueByLocalName(puntNode, "geometrie") : null;
 
-                if (puntNode) {
-                    const locPunt = findValueByLocalName(puntNode, "locatiepunt");
-                    const geom = findValueByLocalName(puntNode, "geometrie");
-                    rawCoordStr = locPunt || geom || "";
-                } else {
-                    rawCoordStr = findValueByLocalName(record, "locatiepunt") || "";
-                }
-
-                if (rawCoordStr) {
-                    const parts = rawCoordStr.match(/[\d.]+/g);
+                if (locPunt) {
+                    const parts = locPunt.match(/[\d.]+/g);
                     if (parts && parts.length >= 2) {
-                        const v1 = parseFloat(parts[0]);
-                        const v2 = parseFloat(parts[1]);
-
-                        // Check if it's Lat/Lng (Small numbers)
-                        if (v1 < 100 && v2 < 100) {
-                             wgs = { lat: v1, lng: v2 };
-                             rd = { x: 0, y: 0 }; 
-                        } else {
-                            rd = { x: v1, y: v2 };
-                        }
+                        const v1 = parseFloat(parts[0]), v2 = parseFloat(parts[1]);
+                        if (v1 < 100 && v2 < 100) { wgs = { lat: v1, lng: v2 }; } 
+                        else { rd = { x: v1, y: v2 }; }
+                    }
+                } else if (geom) {
+                    const parts = geom.match(/[\d.]+/g);
+                    if (parts && parts.length >= 2) {
+                        rd = { x: parseFloat(parts[0]), y: parseFloat(parts[1]) };
                     }
                 }
 
-                if (requireCoordinates) {
-                    // We strictly need valid coordinates to plot on map
-                    if (wgs) {
-                         results.push({ id: identifier, title: rawTitle, date: dateStr, address, coordinates: rd!, wgs84: wgs, url });
-                    } else if (rd) {
-                        const validRD = validateAndFixRD(rd);
-                        if (validRD) {
-                            const converted = rdToWgs84(validRD.x, validRD.y);
-                            if (converted) {
-                                results.push({ id: identifier, title: rawTitle, date: dateStr, address, coordinates: validRD, wgs84: converted, url });
-                            }
-                        }
-                    }
-                } else {
-                     results.push({ 
-                        id: identifier, 
-                        title: rawTitle, 
-                        date: dateStr, 
-                        address, 
-                        coordinates: rd || undefined, 
-                        wgs84: wgs || undefined,
-                        url
-                    });
+                if (rd && !wgs) {
+                    const validRD = validateAndFixRD(rd);
+                    if (validRD) { wgs = rdToWgs84(validRD.x, validRD.y); }
                 }
 
-            } catch (e) {
-                // ignore single failure
-            }
+                if (!requireCoordinates || wgs) {
+                     results.push({ id: identifier, title: rawTitle, date: dateStr, address, coordinates: rd || undefined, wgs84: wgs || undefined, url });
+                }
+            } catch (e) { /* ignore single failure */ }
         });
 
         return results;
@@ -406,27 +336,16 @@ const parseXMLResponse = (xmlText: string, yearContext: number, requireCoordinat
 // --- XML Helpers ---
 
 function findAllNodesByLocalName(parent: Document | Element, localName: string): Element[] {
-    const result: Element[] = [];
-    const allTags = parent.getElementsByTagName("*");
-    for (let i = 0; i < allTags.length; i++) {
-        if (allTags[i].localName === localName) {
-            result.push(allTags[i]);
-        }
-    }
-    return result;
+    return Array.from(parent.getElementsByTagName("*")).filter(el => el.localName === localName);
 }
 
 function findNodeByLocalName(parent: Document | Element, localName: string): Element | null {
-    const allTags = parent.getElementsByTagName("*");
-    for (let i = 0; i < allTags.length; i++) {
-        if (allTags[i].localName === localName) {
-            return allTags[i];
-        }
-    }
-    return null;
+    return findAllNodesByLocalName(parent, localName)[0] || null;
 }
 
 function findValueByLocalName(parent: Element, localName: string): string | null {
     const node = findNodeByLocalName(parent, localName);
     return node ? node.textContent : null;
 }
+
+// Force-Rewrite: 1722421332906
