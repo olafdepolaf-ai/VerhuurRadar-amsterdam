@@ -24,8 +24,8 @@ const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, se
         if (!containerRef.current || mapRef.current) return;
 
         mapRef.current = L.map(containerRef.current, { zoomControl: false }).setView([center.lat, center.lng], 18);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         }).addTo(mapRef.current);
         
         const tilePane = mapRef.current.getPane('tilePane');
