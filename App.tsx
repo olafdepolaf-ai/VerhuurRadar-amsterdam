@@ -9,6 +9,7 @@ import MapLegend from './components/MapLegend';
 import AlertModal from './components/AlertModal';
 import ShowAlertsModal from './components/ShowAlertsModal';
 import HeaderProfile from './components/HeaderProfile';
+import ProfileModal from './components/ProfileModal';
 import { AddressResult, GroupedLocation, PermitRecord, PermitStatus, LatLngCoordinate } from './types';
 import { fetchPermitsForYear, fetchRecentPermits, fetchActivePermitCount, searchAddress, lookupAddress } from './services/apiService';
 import { parsePointString } from './services/geoService';
@@ -74,6 +75,7 @@ function App() {
   // Alert System State
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const [isShowAlertsModalOpen, setIsShowAlertsModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false); // Mock login state
   const [savedAlerts, setSavedAlerts] = useState<string[]>(['Damrak 1, Amsterdam', 'Marnixstraat 390E, Amsterdam']); // Mock initial alerts
 
@@ -222,18 +224,21 @@ function App() {
       // Mock Login Flow
       setTimeout(() => {
           setIsUserLoggedIn(true);
-          // If the alert modal is open (Enable flow), activate it now
-          if (isAlertModalOpen && currentAddress) {
-              if (!savedAlerts.includes(currentAddress.weergavenaam)) {
-                  setSavedAlerts(prev => [...prev, currentAddress.weergavenaam]);
-              }
-              setIsAlertModalOpen(false); // Close modal after successful add
-          }
       }, 500);
   };
 
   const handleLogout = () => {
       setIsUserLoggedIn(false);
+  };
+
+  // Subscribe Action (Logged In User)
+  const handleSubscribe = () => {
+      if (currentAddress) {
+          if (!savedAlerts.includes(currentAddress.weergavenaam)) {
+              setSavedAlerts(prev => [...prev, currentAddress.weergavenaam]);
+          }
+          setIsAlertModalOpen(false); // Close modal after success
+      }
   };
 
   // Triggered when user clicks "Uitschakelen" in the AlertModal (bell icon)
@@ -253,6 +258,12 @@ function App() {
   const handleSelectSavedAlert = async (address: string) => {
       setIsShowAlertsModalOpen(false);
       handleRecentPermitClick(address); // Reuse logic
+  };
+
+  const handleDeleteAccount = () => {
+      setIsUserLoggedIn(false);
+      setSavedAlerts([]);
+      setIsProfileModalOpen(false);
   };
 
   return (
@@ -277,7 +288,7 @@ function App() {
 
                 <div className="flex flex-col items-center gap-1 mb-8 max-w-lg mx-auto">
                     <p className="text-lg text-slate-600 leading-relaxed">
-                      Inzicht in alle vergunningen voor vakantieverhuur in Amsterdam.
+                        Inzicht in alle vergunningen voor vakantieverhuur in Amsterdam.
                     </p>
                 </div>
                 
@@ -399,6 +410,7 @@ function App() {
                         }}
                         onLogout={handleLogout}
                         onShowAlerts={() => setIsShowAlertsModalOpen(true)}
+                        onShowProfile={() => setIsProfileModalOpen(true)}
                     />
                 </div>
             </header>
@@ -449,28 +461,24 @@ function App() {
                             if (!isUserLoggedIn) {
                                 setIsAlertModalOpen(true); // Open login modal
                             } else {
-                                if (hasActiveAlert) {
-                                    setIsAlertModalOpen(true); // Open Unsubscribe confirmation
-                                } else {
-                                    // Instant subscribe if logged in and not yet alerted
-                                    if (currentAddress && savedAlerts.length < 5) {
-                                        setSavedAlerts(prev => [...prev, currentAddress.weergavenaam]);
-                                    }
-                                }
+                                // If logged in, open the modal to handle subscription confirmation OR unsubscription
+                                setIsAlertModalOpen(true); 
                             }
                         }}
                     />
                 </div>
             </div>
 
-            {/* Alert Modal (Unsubscribe / Login) */}
+            {/* Alert Modal (Subscribe / Unsubscribe / Login) */}
             <AlertModal 
                 isOpen={isAlertModalOpen}
                 onClose={() => setIsAlertModalOpen(false)}
                 isLoggedIn={isUserLoggedIn}
                 hasActiveAlert={hasActiveAlert}
                 onLogin={handleLogin}
+                onSubscribe={handleSubscribe}
                 onUnsubscribe={handleUnsubscribe}
+                userEmail="gebruiker@gmail.com"
             />
 
             {/* List Active Alerts Modal */}
@@ -480,6 +488,16 @@ function App() {
                 alerts={savedAlerts}
                 onSelectAlert={handleSelectSavedAlert}
                 onRemoveAlert={handleRemoveSavedAlert}
+            />
+
+            {/* Profile Modal */}
+            <ProfileModal
+                isOpen={isProfileModalOpen}
+                onClose={() => setIsProfileModalOpen(false)}
+                userEmail="gebruiker@gmail.com"
+                userName="Demo Gebruiker"
+                userPhotoUrl="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&q=80"
+                onDeleteAccount={handleDeleteAccount}
             />
         </div>
       )}

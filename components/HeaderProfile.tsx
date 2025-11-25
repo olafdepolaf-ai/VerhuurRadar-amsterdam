@@ -6,9 +6,10 @@ interface HeaderProfileProps {
     onLogin: () => void;
     onLogout: () => void;
     onShowAlerts: () => void;
+    onShowProfile: () => void;
 }
 
-const HeaderProfile: React.FC<HeaderProfileProps> = ({ isLoggedIn, onLogin, onLogout, onShowAlerts }) => {
+const HeaderProfile: React.FC<HeaderProfileProps> = ({ isLoggedIn, onLogin, onLogout, onShowAlerts, onShowProfile }) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +63,13 @@ const HeaderProfile: React.FC<HeaderProfileProps> = ({ isLoggedIn, onLogin, onLo
                         {isLoggedIn ? (
                             <>
                                 <li>
-                                    <button onClick={() => setIsOpen(false)} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                    <button 
+                                        onClick={() => {
+                                            setIsOpen(false);
+                                            onShowProfile();
+                                        }} 
+                                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                                    >
                                         Profiel
                                     </button>
                                 </li>

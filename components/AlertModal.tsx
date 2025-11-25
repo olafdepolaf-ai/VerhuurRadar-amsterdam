@@ -8,6 +8,8 @@ interface AlertModalProps {
     hasActiveAlert: boolean;
     onLogin: () => void;
     onUnsubscribe: () => void;
+    onSubscribe: () => void;
+    userEmail?: string;
 }
 
 const AlertModal: React.FC<AlertModalProps> = ({ 
@@ -16,7 +18,9 @@ const AlertModal: React.FC<AlertModalProps> = ({
     isLoggedIn, 
     hasActiveAlert, 
     onLogin, 
-    onUnsubscribe 
+    onUnsubscribe,
+    onSubscribe,
+    userEmail = "gebruiker@gmail.com"
 }) => {
     if (!isOpen) return null;
 
@@ -34,16 +38,15 @@ const AlertModal: React.FC<AlertModalProps> = ({
                 {/* Close Button */}
                 <button 
                     onClick={onClose}
-                    className="absolute top-3 right-3 p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors"
+                    className="absolute top-3 right-3 p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors z-10"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
 
-                {/* Content Logic */}
-                {!hasActiveAlert ? (
-                    // 1. SETUP FLOW
+                {!isLoggedIn ? (
+                    // 1. GUEST: LOGIN REQUIRED
                     <div className="p-8 flex flex-col items-center text-center">
                         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-red-600">
@@ -60,7 +63,6 @@ const AlertModal: React.FC<AlertModalProps> = ({
                             onClick={onLogin}
                             className="w-full flex items-center justify-center gap-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium py-3 px-4 rounded-xl transition-all shadow-sm"
                         >
-                            {/* Google Icon */}
                             <svg className="w-5 h-5" viewBox="0 0 24 24">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -74,8 +76,8 @@ const AlertModal: React.FC<AlertModalProps> = ({
                             Wij gebruiken je e-mailadres alleen voor deze meldingen.
                         </p>
                     </div>
-                ) : (
-                    // 2. UNSUBSCRIBE FLOW
+                ) : hasActiveAlert ? (
+                    // 2. LOGGED IN: UNSUBSCRIBE FLOW
                     <div className="p-8 flex flex-col items-center text-center">
                         <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-slate-500">
@@ -103,6 +105,32 @@ const AlertModal: React.FC<AlertModalProps> = ({
                                 Uitschakelen
                             </button>
                         </div>
+                    </div>
+                ) : (
+                    // 3. LOGGED IN: SUBSCRIBE CONFIRMATION
+                    <div className="p-8 flex flex-col items-center text-center">
+                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
+                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-green-600">
+                                <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">Alert instellen</h3>
+                        <p className="text-sm text-slate-600 mb-4 leading-relaxed">
+                            Ontvang maximaal 1 e-mail per dag bij nieuwe vergunningen in deze buurt.
+                        </p>
+                        
+                        <div className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 mb-6">
+                            <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Jouw e-mailadres</p>
+                            <p className="text-sm text-slate-900 font-medium truncate">{userEmail}</p>
+                        </div>
+
+                        <button 
+                            onClick={onSubscribe}
+                            className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-sm"
+                        >
+                            Bevestigen
+                        </button>
                     </div>
                 )}
             </div>
