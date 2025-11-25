@@ -1,6 +1,8 @@
 import { signInWithPopup, signOut, deleteUser, User } from "firebase/auth";
 import { auth, googleProvider } from "./firebase";
 
+// Force Update: 1722424800000
+
 export const loginWithGoogle = async (): Promise<User> => {
     try {
         const result = await signInWithPopup(auth, googleProvider);
@@ -27,8 +29,6 @@ export const deleteCurrentUserAccount = async (): Promise<void> => {
             await deleteUser(user);
         } catch (error) {
             console.error("Error deleting user account:", error);
-            // This operation is sensitive and may require re-authentication.
-            // Handle re-authentication flow if necessary.
             throw error;
         }
     } else {

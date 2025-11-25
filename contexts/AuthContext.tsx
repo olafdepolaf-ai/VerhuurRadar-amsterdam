@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../services/firebase';
 
+// Force Update: 1722424800000
+
 interface AuthContextType {
     currentUser: User | null;
     loading: boolean;
@@ -9,15 +11,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({ currentUser: null, loading: true });
 
-export const useAuth = () => {
-    return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
 
-interface AuthProviderProps {
-    children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -26,14 +22,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setCurrentUser(user);
             setLoading(false);
         });
-
-        return unsubscribe; // Cleanup subscription on unmount
+        return unsubscribe;
     }, []);
 
-    const value = {
-        currentUser,
-        loading,
-    };
+    const value = { currentUser, loading };
 
     return (
         <AuthContext.Provider value={value}>

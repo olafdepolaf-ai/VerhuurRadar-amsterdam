@@ -1,7 +1,8 @@
 import { LatLngCoordinate, RDCoordinate } from "../types";
 
+// Force Update: 1722424800000
+
 // Approximate conversion for RD New to WGS84
-// While libraries like proj4 exist, a standalone function is lighter for this specific constrained use case.
 export const rdToWgs84 = (x: number, y: number): LatLngCoordinate => {
     const x0 = 155000;
     const y0 = 463000;
@@ -46,7 +47,6 @@ export const rdToWgs84 = (x: number, y: number): LatLngCoordinate => {
 
 export const parsePointString = (pointStr: string): { x: number, y: number } | null => {
     if (!pointStr) return null;
-    // Robust regex: handles "POINT(x y)", "POINT (x y)", "POINT(x, y)" and decimals
     const matches = pointStr.match(/POINT\s*\(\s*([\d.]+)[,\s]+([\d.]+)\s*\)/i);
     if (matches && matches.length === 3) {
         return {
@@ -56,5 +56,3 @@ export const parsePointString = (pointStr: string): { x: number, y: number } | n
     }
     return null;
 }
-
-// Force-Rewrite: 1722421332906

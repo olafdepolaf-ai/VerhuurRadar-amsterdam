@@ -1,3 +1,4 @@
+import { User } from 'firebase/auth';
 
 export interface RDCoordinate {
     x: number;
@@ -27,8 +28,8 @@ export interface PermitRecord {
     title: string;
     date: string; // YYYY-MM-DD
     address: string;
-    coordinates?: RDCoordinate; // Optional now
-    wgs84?: LatLngCoordinate;   // Optional now
+    coordinates?: RDCoordinate; 
+    wgs84?: LatLngCoordinate;  
     url?: string;
 }
 
@@ -39,4 +40,12 @@ export interface GroupedLocation {
     permits: PermitRecord[];
 }
 
-// Force-Rewrite: 1722421332906
+export interface SavedAlert {
+    id: string; 
+    address: string;
+    emailEnabled: boolean;
+    createdAt: number;
+}
+
+
+// Force Update: 1722424800000
