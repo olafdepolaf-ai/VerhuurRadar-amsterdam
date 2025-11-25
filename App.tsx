@@ -59,6 +59,11 @@ const AmsterdamHeartIcon = ({ className }: { className?: string }) => (
     </svg>
 );
 
+interface SavedAlert {
+    address: string;
+    emailEnabled: boolean;
+}
+
 function App() {
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -76,13 +81,18 @@ function App() {
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const [isShowAlertsModalOpen, setIsShowAlertsModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false); // Mock login state
-  const [savedAlerts, setSavedAlerts] = useState<string[]>(['Damrak 1, Amsterdam', 'Marnixstraat 390E, Amsterdam']); // Mock initial alerts
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false); 
+  
+  // Updated: Store alerts as objects
+  const [savedAlerts, setSavedAlerts] = useState<SavedAlert[]>([
+      { address: 'Damrak 1, Amsterdam', emailEnabled: true },
+      { address: 'Marnixstraat 390E, Amsterdam', emailEnabled: false }
+  ]);
 
   // Derived state to check if current search is alerted
   const hasActiveAlert = useMemo(() => {
       if (!currentAddress) return false;
-      return savedAlerts.includes(currentAddress.weergavenaam);
+      return savedAlerts.some(a => a.address === currentAddress.weergavenaam);
   }, [currentAddress, savedAlerts]);
 
   // Load latest permits and total count on mount
@@ -202,7 +212,7 @@ function App() {
     setCurrentAddress(null);
     setUserLocation(null);
     setErrorMsg(null);
-    setIsMobileListCollapsed(false); // Reset mobile collapse
+    setIsMobileListCollapsed(false); 
   };
 
   const handleRecentPermitClick = async (address: string) => {
@@ -221,7 +231,6 @@ function App() {
 
   // --- Alert System Handlers ---
   const handleLogin = () => {
-      // Mock Login Flow
       setTimeout(() => {
           setIsUserLoggedIn(true);
       }, 500);
@@ -231,33 +240,35 @@ function App() {
       setIsUserLoggedIn(false);
   };
 
-  // Subscribe Action (Logged In User)
   const handleSubscribe = () => {
       if (currentAddress) {
-          if (!savedAlerts.includes(currentAddress.weergavenaam)) {
-              setSavedAlerts(prev => [...prev, currentAddress.weergavenaam]);
+          if (!savedAlerts.some(a => a.address === currentAddress.weergavenaam)) {
+              setSavedAlerts(prev => [...prev, { address: currentAddress.weergavenaam, emailEnabled: true }]);
           }
-          setIsAlertModalOpen(false); // Close modal after success
+          setIsAlertModalOpen(false); 
       }
   };
 
-  // Triggered when user clicks "Uitschakelen" in the AlertModal (bell icon)
   const handleUnsubscribe = () => {
       if (currentAddress) {
-          setSavedAlerts(prev => prev.filter(addr => addr !== currentAddress.weergavenaam));
+          setSavedAlerts(prev => prev.filter(a => a.address !== currentAddress.weergavenaam));
       }
       setIsAlertModalOpen(false);
   };
 
-  // Triggered from ShowAlertsModal table
   const handleRemoveSavedAlert = (addressToRemove: string) => {
-      setSavedAlerts(prev => prev.filter(addr => addr !== addressToRemove));
+      setSavedAlerts(prev => prev.filter(a => a.address !== addressToRemove));
   };
 
-  // Triggered from ShowAlertsModal table
+  const handleToggleAlertEmail = (address: string) => {
+      setSavedAlerts(prev => prev.map(alert => 
+          alert.address === address ? { ...alert, emailEnabled: !alert.emailEnabled } : alert
+      ));
+  };
+
   const handleSelectSavedAlert = async (address: string) => {
       setIsShowAlertsModalOpen(false);
-      handleRecentPermitClick(address); // Reuse logic
+      handleRecentPermitClick(address);
   };
 
   const handleDeleteAccount = () => {
@@ -301,7 +312,7 @@ function App() {
                     )}
                 </div>
 
-                {/* Recent Permits Health Check (Top 3) */}
+                {/* Recent Permits */}
                 {recentPermits.length > 0 && (
                     <div className="w-full max-w-md space-y-3 animate-fade-in-up">
                         <div className="text-xs font-bold text-slate-400 uppercase tracking-widest text-left pl-1">Laatst verleend</div>
@@ -320,7 +331,7 @@ function App() {
                     </div>
                 )}
 
-                {/* Active Count Widget with Context */}
+                {/* Active Count Widget */}
                 {totalActiveCount !== null && totalActiveCount > 0 && (
                     <div className="mt-8 text-center animate-fade-in-up delay-100 max-w-lg mx-auto">
                         <div className="bg-red-50 border border-red-100 rounded-lg px-6 py-4 shadow-sm">
@@ -345,12 +356,10 @@ function App() {
                     </div>
                 )}
 
-                {/* FAQ Section */}
                 <FAQSection />
 
               </div>
               
-              {/* Footer */}
               <footer className="w-full mt-16 pb-6 text-center z-10">
                  <div className="flex flex-col items-center gap-2">
                     <div className="flex items-center gap-2 text-slate-400 text-xs font-medium uppercase tracking-wider">
@@ -367,13 +376,11 @@ function App() {
         </div>
       )}
 
-      {/* Results Split View */}
+      {/* Results View */}
       {hasSearched && userLocation && (
         <div className="flex flex-col h-full w-full">
-            {/* Header */}
             <header className="flex-none bg-white border-b border-slate-200 h-16 px-4 md:px-6 flex items-center justify-between z-[2000] shadow-sm relative gap-4">
                 
-                {/* Logo Area (Left) */}
                 <div 
                     onClick={handleReset}
                     className="cursor-pointer flex items-center gap-3 hover:opacity-80 transition-opacity flex-shrink-0"
@@ -382,7 +389,6 @@ function App() {
                     title="Terug naar start"
                 >
                     <VerhuurRadarIcon className="w-8 h-8 shadow-sm rounded-full" />
-                    {/* Updated: Ensure title is visible on mobile */}
                     <div className="flex flex-col leading-none justify-center">
                         <span className="font-bold text-xl md:text-2xl tracking-tight">
                             <span className="text-slate-900">Verhuur</span><span className="text-red-600">Radar</span>
@@ -390,23 +396,21 @@ function App() {
                     </div>
                 </div>
                 
-                {/* Search Bar (Centered on Desktop, Hidden on Mobile Header because it's in overlay) */}
                 <div className="hidden md:flex flex-1 max-w-xl mx-4 justify-center">
                     <AddressSearch 
                         onAddressSelect={handleAddressSelect} 
                         isCompact={true} 
                         initialValue={currentAddress?.weergavenaam}
-                        onClear={() => {}} // Pass empty function to allow clear without reset
+                        onClear={() => {}} 
                     />
                 </div>
 
-                {/* Profile Area (Right) */}
                 <div className="flex-shrink-0 flex items-center gap-3">
                     <HeaderProfile 
                         isLoggedIn={isUserLoggedIn}
                         onLogin={() => {
-                            // Trigger mock login immediately if clicking from dropdown
-                            handleLogin();
+                            // Updated: Open modal instead of direct login
+                            setIsAlertModalOpen(true);
                         }}
                         onLogout={handleLogout}
                         onShowAlerts={() => setIsShowAlertsModalOpen(true)}
@@ -415,22 +419,19 @@ function App() {
                 </div>
             </header>
 
-            {/* Content Container */}
             <div className="flex-1 flex flex-col md:flex-row relative overflow-hidden">
                 
-                {/* Mobile Search Overlay */}
                 <div className="md:hidden absolute top-0 left-0 w-full z-[1000] px-2 pt-2 pointer-events-none">
                     <div className="w-full pointer-events-auto">
                         <AddressSearch 
                             onAddressSelect={handleAddressSelect} 
                             isCompact={true} 
                             initialValue={currentAddress?.weergavenaam}
-                            onClear={() => {}} // Pass empty function to allow clear without reset
+                            onClear={() => {}} 
                         />
                     </div>
                 </div>
 
-                {/* Map Area - Flex 1 to take remaining space when list collapses */}
                 <div className="flex-1 relative order-1 md:order-2 pt-16 md:pt-0">
                      <div className="absolute top-4 right-4 z-[999] pointer-events-auto">
                          <StatsWidget permits={foundPermits} />
@@ -446,7 +447,6 @@ function App() {
                      <MapLegend />
                 </div>
 
-                {/* List Area */}
                 <div className={`w-full md:w-72 min-w-[288px] bg-white border-t md:border-t-0 md:border-r border-slate-200 shadow-xl z-10 flex flex-col order-2 md:order-1 pt-0 md:pt-0 transition-all duration-300 ease-in-out ${isMobileListCollapsed ? 'h-14' : 'h-[45vh]'} md:h-full`}>
                     <ResultList 
                         locations={groupedLocations} 
@@ -458,18 +458,18 @@ function App() {
                         onToggleMobileCollapse={() => setIsMobileListCollapsed(!isMobileListCollapsed)}
                         hasActiveAlert={hasActiveAlert}
                         onAlertClick={() => {
-                            if (!isUserLoggedIn) {
-                                setIsAlertModalOpen(true); // Open login modal
+                            // Updated: If alert active & logged in -> Open Management Modal
+                            // Else -> Open Confirm/Login Modal
+                            if (hasActiveAlert && isUserLoggedIn) {
+                                setIsShowAlertsModalOpen(true);
                             } else {
-                                // If logged in, open the modal to handle subscription confirmation OR unsubscription
-                                setIsAlertModalOpen(true); 
+                                setIsAlertModalOpen(true);
                             }
                         }}
                     />
                 </div>
             </div>
 
-            {/* Alert Modal (Subscribe / Unsubscribe / Login) */}
             <AlertModal 
                 isOpen={isAlertModalOpen}
                 onClose={() => setIsAlertModalOpen(false)}
@@ -481,16 +481,15 @@ function App() {
                 userEmail="gebruiker@gmail.com"
             />
 
-            {/* List Active Alerts Modal */}
             <ShowAlertsModal 
                 isOpen={isShowAlertsModalOpen}
                 onClose={() => setIsShowAlertsModalOpen(false)}
                 alerts={savedAlerts}
                 onSelectAlert={handleSelectSavedAlert}
                 onRemoveAlert={handleRemoveSavedAlert}
+                onToggleEmail={handleToggleAlertEmail}
             />
 
-            {/* Profile Modal */}
             <ProfileModal
                 isOpen={isProfileModalOpen}
                 onClose={() => setIsProfileModalOpen(false)}
