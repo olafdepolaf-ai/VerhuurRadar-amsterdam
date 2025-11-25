@@ -182,9 +182,14 @@ function App() {
     try {
       await loginWithGoogle();
       setIsAlertModalOpen(false); // Close modal on success
-    } catch (error) {
-      console.error(error);
-      setLoginError("Inloggen met Google is mislukt. Probeer het opnieuw.");
+    } catch (error: any) {
+      console.error("Login failed:", error.code);
+      if (error.code === 'auth/unauthorized-domain') {
+          const domain = window.location.hostname;
+          setLoginError(`Dit domein (${domain}) is niet geautoriseerd voor inloggen. `);
+      } else {
+          setLoginError("Inloggen met Google is mislukt. Probeer het opnieuw.");
+      }
     }
   };
   
@@ -264,7 +269,7 @@ function App() {
                 {totalActiveCount && (
                     <div className="mt-8 text-center animate-fade-in-up delay-100 max-w-lg mx-auto">
                         <div className="bg-red-50 border border-red-100 rounded-lg px-6 py-4 shadow-sm">
-                             <p className="text-slate-800 font-medium text-base mb-2">Vandaag zijn er in Amsterdam <span className="font-bold text-red-600 text-lg mx-1">{totalActiveCount}</span> vergunningen actief</p>
+                             <p className="text-slate-800 font-medium text-base mb-2">Vandaag zijn er in Amsterdam <span className="font-bold text-red-600 text-lg mx-1">{totalActiveCount.toLocaleString('nl-NL')}</span> vergunningen actief</p>
                              <p className="text-slate-600 text-sm leading-relaxed mb-3">Het gaat hier om particuliere woningen met een geldige vergunning voor vakantieverhuur.</p>
                              <a href="https://www.amsterdam.nl/wonen-leven/wonen/vakantieverhuur/" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-800 text-sm font-semibold hover:underline inline-flex items-center gap-1">Meer info op Amsterdam.nl<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M5 10a.75.75 0 01.75-.75h6.638L10.23 7.29a.75.75 0 111.04-1.08l3.5 3.25a.75.75 0 010 1.08l-3.5 3.25a.75.75 0 11-1.04-1.08l2.158-1.96H5.75A.75.75 0 015 10z" clipRule="evenodd" /></svg></a>
                         </div>
@@ -313,3 +318,4 @@ function App() {
 }
 
 export default App;
+// Force Update: 1722422005435
