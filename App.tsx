@@ -6,6 +6,9 @@ import ResultList from './components/ResultList';
 import StatsWidget from './components/StatsWidget';
 import FAQSection from './components/FAQSection';
 import MapLegend from './components/MapLegend';
+import AlertModal from './components/AlertModal';
+import ShowAlertsModal from './components/ShowAlertsModal';
+import HeaderProfile from './components/HeaderProfile';
 import { AddressResult, GroupedLocation, PermitRecord, PermitStatus, LatLngCoordinate } from './types';
 import { fetchPermitsForYear, fetchRecentPermits, fetchActivePermitCount, searchAddress, lookupAddress } from './services/apiService';
 import { parsePointString } from './services/geoService';
@@ -67,6 +70,18 @@ function App() {
   const [recentPermits, setRecentPermits] = useState<PermitRecord[]>([]);
   const [totalActiveCount, setTotalActiveCount] = useState<number | null>(null);
   const [isMobileListCollapsed, setIsMobileListCollapsed] = useState(false);
+
+  // Alert System State
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [isShowAlertsModalOpen, setIsShowAlertsModalOpen] = useState(false);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false); // Mock login state
+  const [savedAlerts, setSavedAlerts] = useState<string[]>(['Damrak 1, Amsterdam', 'Marnixstraat 390E, Amsterdam']); // Mock initial alerts
+
+  // Derived state to check if current search is alerted
+  const hasActiveAlert = useMemo(() => {
+      if (!currentAddress) return false;
+      return savedAlerts.includes(currentAddress.weergavenaam);
+  }, [currentAddress, savedAlerts]);
 
   // Load latest permits and total count on mount
   useEffect(() => {
@@ -202,6 +217,44 @@ function App() {
     }
   };
 
+  // --- Alert System Handlers ---
+  const handleLogin = () => {
+      // Mock Login Flow
+      setTimeout(() => {
+          setIsUserLoggedIn(true);
+          // If the alert modal is open (Enable flow), activate it now
+          if (isAlertModalOpen && currentAddress) {
+              if (!savedAlerts.includes(currentAddress.weergavenaam)) {
+                  setSavedAlerts(prev => [...prev, currentAddress.weergavenaam]);
+              }
+              setIsAlertModalOpen(false); // Close modal after successful add
+          }
+      }, 500);
+  };
+
+  const handleLogout = () => {
+      setIsUserLoggedIn(false);
+  };
+
+  // Triggered when user clicks "Uitschakelen" in the AlertModal (bell icon)
+  const handleUnsubscribe = () => {
+      if (currentAddress) {
+          setSavedAlerts(prev => prev.filter(addr => addr !== currentAddress.weergavenaam));
+      }
+      setIsAlertModalOpen(false);
+  };
+
+  // Triggered from ShowAlertsModal table
+  const handleRemoveSavedAlert = (addressToRemove: string) => {
+      setSavedAlerts(prev => prev.filter(addr => addr !== addressToRemove));
+  };
+
+  // Triggered from ShowAlertsModal table
+  const handleSelectSavedAlert = async (address: string) => {
+      setIsShowAlertsModalOpen(false);
+      handleRecentPermitClick(address); // Reuse logic
+  };
+
   return (
     <div className="h-screen w-full flex flex-col bg-white font-sans text-slate-900 overflow-hidden">
       
@@ -307,30 +360,45 @@ function App() {
       {hasSearched && userLocation && (
         <div className="flex flex-col h-full w-full">
             {/* Header */}
-            <header className="flex-none bg-white border-b border-slate-200 h-16 px-4 md:px-6 flex items-center z-[2000] shadow-sm relative">
+            <header className="flex-none bg-white border-b border-slate-200 h-16 px-4 md:px-6 flex items-center justify-between z-[2000] shadow-sm relative gap-4">
+                
+                {/* Logo Area (Left) */}
                 <div 
                     onClick={handleReset}
-                    className="cursor-pointer flex items-center gap-3 hover:opacity-80 transition-opacity mr-auto"
+                    className="cursor-pointer flex items-center gap-3 hover:opacity-80 transition-opacity flex-shrink-0"
                     role="button"
                     tabIndex={0}
                     title="Terug naar start"
                 >
                     <VerhuurRadarIcon className="w-8 h-8 shadow-sm rounded-full" />
+                    {/* Updated: Ensure title is visible on mobile */}
                     <div className="flex flex-col leading-none justify-center">
                         <span className="font-bold text-xl md:text-2xl tracking-tight">
                             <span className="text-slate-900">Verhuur</span><span className="text-red-600">Radar</span>
                         </span>
-                        <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Amsterdam</span>
                     </div>
                 </div>
                 
-                {/* Search Bar aligned to the right */}
-                <div className="hidden md:flex w-72 ml-auto items-center">
+                {/* Search Bar (Centered on Desktop, Hidden on Mobile Header because it's in overlay) */}
+                <div className="hidden md:flex flex-1 max-w-xl mx-4 justify-center">
                     <AddressSearch 
                         onAddressSelect={handleAddressSelect} 
                         isCompact={true} 
                         initialValue={currentAddress?.weergavenaam}
                         onClear={() => {}} // Pass empty function to allow clear without reset
+                    />
+                </div>
+
+                {/* Profile Area (Right) */}
+                <div className="flex-shrink-0 flex items-center gap-3">
+                    <HeaderProfile 
+                        isLoggedIn={isUserLoggedIn}
+                        onLogin={() => {
+                            // Trigger mock login immediately if clicking from dropdown
+                            handleLogin();
+                        }}
+                        onLogout={handleLogout}
+                        onShowAlerts={() => setIsShowAlertsModalOpen(true)}
                     />
                 </div>
             </header>
@@ -376,9 +444,43 @@ function App() {
                         loadingStatus={loadingStatus}
                         isMobileCollapsed={isMobileListCollapsed}
                         onToggleMobileCollapse={() => setIsMobileListCollapsed(!isMobileListCollapsed)}
+                        hasActiveAlert={hasActiveAlert}
+                        onAlertClick={() => {
+                            if (!isUserLoggedIn) {
+                                setIsAlertModalOpen(true); // Open login modal
+                            } else {
+                                if (hasActiveAlert) {
+                                    setIsAlertModalOpen(true); // Open Unsubscribe confirmation
+                                } else {
+                                    // Instant subscribe if logged in and not yet alerted
+                                    if (currentAddress && savedAlerts.length < 5) {
+                                        setSavedAlerts(prev => [...prev, currentAddress.weergavenaam]);
+                                    }
+                                }
+                            }
+                        }}
                     />
                 </div>
             </div>
+
+            {/* Alert Modal (Unsubscribe / Login) */}
+            <AlertModal 
+                isOpen={isAlertModalOpen}
+                onClose={() => setIsAlertModalOpen(false)}
+                isLoggedIn={isUserLoggedIn}
+                hasActiveAlert={hasActiveAlert}
+                onLogin={handleLogin}
+                onUnsubscribe={handleUnsubscribe}
+            />
+
+            {/* List Active Alerts Modal */}
+            <ShowAlertsModal 
+                isOpen={isShowAlertsModalOpen}
+                onClose={() => setIsShowAlertsModalOpen(false)}
+                alerts={savedAlerts}
+                onSelectAlert={handleSelectSavedAlert}
+                onRemoveAlert={handleRemoveSavedAlert}
+            />
         </div>
       )}
     </div>
