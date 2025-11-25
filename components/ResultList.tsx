@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { GroupedLocation, PermitRecord } from '../types';
 
 interface ResultListProps {
@@ -28,6 +28,20 @@ const ResultList: React.FC<ResultListProps> = ({
     
     // Define the range of years we track (Descending order: 2025 on left)
     const yearsRange = [2025, 2024, 2023, 2022, 2021];
+
+    // Animation state for the bell
+    const [isRinging, setIsRinging] = useState(false);
+    const prevActiveRef = useRef(hasActiveAlert);
+
+    // Trigger pop animation when alert becomes active
+    useEffect(() => {
+        if (!prevActiveRef.current && hasActiveAlert) {
+            setIsRinging(true);
+            const timer = setTimeout(() => setIsRinging(false), 800); // Match animation duration
+            return () => clearTimeout(timer);
+        }
+        prevActiveRef.current = hasActiveAlert;
+    }, [hasActiveAlert]);
 
     // Auto-scroll to selected item
     useEffect(() => {
@@ -89,7 +103,18 @@ const ResultList: React.FC<ResultListProps> = ({
 
     return (
         <div className="h-full bg-white flex flex-col overflow-hidden">
-            
+            <style>{`
+                @keyframes icon-pop {
+                    0% { transform: scale(0.5); opacity: 0; }
+                    50% { transform: scale(1.4); opacity: 1; }
+                    70% { transform: scale(0.9); }
+                    100% { transform: scale(1); }
+                }
+                .animate-icon-pop {
+                    animation: icon-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+                }
+            `}</style>
+
             {/* Header - Clickable on mobile to toggle */}
             <div 
                 className="flex-none bg-white border-b border-slate-100 px-6 h-14 z-10 flex items-center justify-between shadow-sm cursor-pointer md:cursor-default"
@@ -115,16 +140,31 @@ const ResultList: React.FC<ResultListProps> = ({
                                 e.stopPropagation(); // Prevent mobile collapse toggle
                                 onAlertClick();
                             }}
-                            className={`p-2 rounded-full transition-all duration-200 focus:outline-none ${
+                            className={`p-2 rounded-full transition-all duration-300 focus:outline-none flex items-center justify-center ${
                                 hasActiveAlert 
-                                    ? 'bg-red-50 text-red-600 hover:bg-red-100' 
-                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                                    ? 'bg-slate-200 text-slate-800 shadow-inner' // Active: Gray "pressed" look
+                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50' // Inactive: Standard hover
                             }`}
-                            title={hasActiveAlert ? "Meldingen beheren" : "Melding instellen"}
+                            title={hasActiveAlert ? "Alert actief (klik om te beheren)" : "Stel alert in"}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={hasActiveAlert ? "currentColor" : "none"} strokeWidth={hasActiveAlert ? 0 : 2} stroke="currentColor" className="w-5 h-5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                            </svg>
+                            <div className={`transition-transform origin-center ${isRinging ? 'animate-icon-pop' : ''}`}>
+                                {hasActiveAlert ? (
+                                    // Active: Solid Bell with "Sound Waves" (Two lines above)
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                        {/* Sound waves */}
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 6c0-1.5 1-2.5 2.5-3" stroke="currentColor" fill="none" className="opacity-80" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 6c0-1.5-1-2.5-2.5-3" stroke="currentColor" fill="none" className="opacity-80" />
+                                        
+                                        {/* Bell Body */}
+                                        <path fillRule="evenodd" d="M5.25 9a6.75 6.75 0 0113.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 01-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 11-7.48 0 24.585 24.585 0 01-4.831-1.244.75.75 0 01-.298-1.205A8.217 8.217 0 005.25 9.75V9zm4.502 8.9a2.25 2.25 0 104.496 0 25.057 25.057 0 01-4.496 0z" clipRule="evenodd" />
+                                    </svg>
+                                ) : (
+                                    // Inactive: Outline Bell (Standard)
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                                    </svg>
+                                )}
+                            </div>
                         </button>
                     )}
 
