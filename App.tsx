@@ -421,18 +421,18 @@ function App() {
 
             <div className="flex-1 flex flex-col md:flex-row relative overflow-hidden">
                 
-                <div className="md:hidden absolute top-0 left-0 w-full z-[1000] px-2 pt-2 pointer-events-none">
-                    <div className="w-full pointer-events-auto">
-                        <AddressSearch 
-                            onAddressSelect={handleAddressSelect} 
-                            isCompact={true} 
-                            initialValue={currentAddress?.weergavenaam}
-                            onClear={() => {}} 
-                        />
-                    </div>
+                {/* Mobile Search - Now part of the flex layout, not absolute */}
+                <div className="md:hidden w-full z-10 px-2 py-2 bg-white border-b border-slate-200">
+                    <AddressSearch 
+                        onAddressSelect={handleAddressSelect} 
+                        isCompact={true} 
+                        initialValue={currentAddress?.weergavenaam}
+                        onClear={() => {}} 
+                    />
                 </div>
 
-                <div className="flex-1 relative order-1 md:order-2 pt-16 md:pt-0">
+
+                <div className="flex-1 relative order-1 md:order-2">
                      <div className="absolute top-4 right-4 z-[999] pointer-events-auto">
                          <StatsWidget permits={foundPermits} />
                      </div>
@@ -442,12 +442,13 @@ function App() {
                         locations={groupedLocations}
                         onMarkerClick={(loc) => setSelectedLocationId(loc.address)}
                         selectedLocationId={selectedLocationId}
+                        isMobileListCollapsed={isMobileListCollapsed}
                      />
                      
                      <MapLegend />
                 </div>
 
-                <div className={`w-full md:w-72 min-w-[288px] bg-white border-t md:border-t-0 md:border-r border-slate-200 shadow-xl z-10 flex flex-col order-2 md:order-1 pt-0 md:pt-0 transition-all duration-300 ease-in-out ${isMobileListCollapsed ? 'h-14' : 'h-[45vh]'} md:h-full`}>
+                <div className={`w-full md:w-72 min-w-[288px] bg-white border-t md:border-t-0 md:border-r border-slate-200 shadow-xl z-10 flex flex-col order-2 md:order-1 transition-all duration-300 ease-in-out ${isMobileListCollapsed ? 'h-14' : 'h-[45vh]'} md:h-full`}>
                     <ResultList 
                         locations={groupedLocations} 
                         onSelect={(loc) => setSelectedLocationId(loc.address)}
@@ -479,6 +480,7 @@ function App() {
                 onSubscribe={handleSubscribe}
                 onUnsubscribe={handleUnsubscribe}
                 userEmail="gebruiker@gmail.com"
+                loginError={null}
             />
 
             <ShowAlertsModal 

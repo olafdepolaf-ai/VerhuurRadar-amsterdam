@@ -9,9 +9,10 @@ interface MapComponentProps {
     locations: GroupedLocation[];
     onMarkerClick: (location: GroupedLocation) => void;
     selectedLocationId?: string;
+    isMobileListCollapsed?: boolean;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarkerClick, selectedLocationId }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarkerClick, selectedLocationId, isMobileListCollapsed }) => {
     const mapRef = useRef<L.Map | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<{ [key: string]: L.CircleMarker }>({});
@@ -54,6 +55,18 @@ const MapComponent: React.FC<MapComponentProps> = ({ center, locations, onMarker
 
         return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; } };
     }, []);
+
+    // Effect to invalidate map size on mobile collapse/expand
+    useEffect(() => {
+        if (mapRef.current) {
+            // Wait for the CSS transition to finish before invalidating size
+            const timer = setTimeout(() => {
+                mapRef.current!.invalidateSize();
+            }, 350); // Slightly longer than the 300ms transition
+
+            return () => clearTimeout(timer);
+        }
+    }, [isMobileListCollapsed]);
 
     useEffect(() => {
         if (!mapRef.current) return;
