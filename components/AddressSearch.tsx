@@ -18,19 +18,27 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
     useEffect(() => { setQuery(initialValue); }, [initialValue]);
 
     useEffect(() => {
-        const timer = setTimeout(async () => {
+        const timeoutId = setTimeout(async () => {
             if (query.length >= 3 && query !== initialValue) {
                 setIsLoading(true);
-                const results = await searchAddress(query);
-                setSuggestions(results);
-                setFocusedIndex(-1);
-                setIsOpen(true);
-                setIsLoading(false);
-            } else { setIsOpen(false); }
+                try {
+                    const results = await searchAddress(query);
+                    setSuggestions(results);
+                    setFocusedIndex(-1);
+                    setIsOpen(true);
+                } catch (error) {
+                    console.error("Search failed", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            } else {
+                setIsOpen(false);
+            }
         }, 300);
-        return () => clearTimeout(timer);
+
+        return () => clearTimeout(timeoutId);
     }, [query, initialValue]);
-    
+
     const handleSelect = async (item: AddressResult) => {
         setQuery(item.weergavenaam); setIsOpen(false); setFocusedIndex(-1);
         const fullDetails = await lookupAddress(item.id);
@@ -44,9 +52,9 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
         else if (e.key === 'Enter' && focusedIndex >= 0) { e.preventDefault(); handleSelect(suggestions[focusedIndex]); }
         else if (e.key === 'Escape') { setIsOpen(false); }
     };
-    
+
     const handleClear = () => { setQuery(''); if (onClear) onClear(); inputRef.current?.focus(); };
-    
+
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => { if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setIsOpen(false); };
         document.addEventListener("mousedown", handleClickOutside);
