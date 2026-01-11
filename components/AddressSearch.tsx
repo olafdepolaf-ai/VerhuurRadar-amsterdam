@@ -73,7 +73,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
             </div>
             {isOpen && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 max-h-72 overflow-y-auto z-[4000]">
-                    <ul className="divide-y divide-slate-50">{suggestions.map((item, index) => <li key={item.id} onClick={() => handleSelect(item)} className={`px-4 py-3 cursor-pointer ${index === focusedIndex ? 'bg-red-50' : 'hover:bg-red-50'}`}>{item.weergavenaam}</li>)}</ul>
+                    <ul className="divide-y divide-slate-50">{suggestions.map((item, index) => <li key={item.id} onClick={() => handleSelect(item)} className={`px-4 py-3 cursor-pointer text-left ${index === focusedIndex ? 'bg-red-50' : 'hover:bg-red-50'}`}>{item.weergavenaam}</li>)}</ul>
                 </div>
             )}
         </div>

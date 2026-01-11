@@ -18,15 +18,15 @@ const FAQItem = ({ q, a, l, lt }: { q: string, a: string, l?: string, lt?: strin
 };
 
 const FAQSection: React.FC = () => (
-    <div className="w-full max-w-lg mt-8 bg-white rounded-xl shadow-sm border text-left">
-        <FAQItem q="Wat is tijdelijke vakantieverhuur?" a={`Bij vakantieverhuur verhuurt de bewoner de hele woning. De bewoner is zelf niet thuis.\nDit is anders dan een Bed & Breakfast, waarbij de bewoner wel thuis is.`}/>
-        <FAQItem q="Waar komt deze data vandaan?" a="Deze website toont openbare gegevens van de Gemeente Amsterdam, gepubliceerd op Overheid.nl. Het gaat alleen om verleende vergunningen."/>
-        <FAQItem q="Zijn er ook andere regels?" a={`Jazeker. Naast de regels van de gemeente, gelden ook de regels van bijvoorbeeld een Vereniging van Eigenaren (VvE). Als de VvE verhuur verbiedt, mag het niet.`} l="https://www.amsterdam.nl/wonen-bouwen-verbouwen/woonruimte-verhuren/regels-verhuur-woning/" lt="Bekijk meer regels op amsterdam.nl"/>
-        <FAQItem q="Wat zijn de belangrijkste voorwaarden?" a={`De aanvrager moet hoofdbewoner zijn en ingeschreven staan op het adres. Verhuur is toegestaan voor maximaal 30 nachten per jaar en aan maximaal 4 personen per keer.`}/>
-        <FAQItem q="Wat kost een vergunning en hoe lang is die geldig?" a={`Een vergunning kost € 73,30 (in 2025). De vergunning is geldig voor het lopende jaar tot 1 april van het volgende jaar.`}/>
-        <FAQItem q="Betekent een vergunning ook verhuur?" a="Nee, een vergunning geeft alleen toestemming. Het is niet zeker of er ook echt is verhuurd. Die informatie is niet openbaar."/>
-        <FAQItem q="Hoe hoog zijn de boetes?" a={`Voor verhuur zonder vergunning of het niet vooraf melden, kan een boete volgen. Voor particulieren is dit € 1.500,-.`}/>
-        <FAQItem q="Nieuwe regels voor Centrum en De Pijp per 2026" a={`In het Centrum en De Pijp wordt het aantal nachten mogelijk verlaagd naar 15 per jaar. Deze regel gaat waarschijnlijk in op 1 april 2026.`}/>
+    <div className="w-full max-w-md mt-8 bg-white rounded-xl shadow-sm border text-left">
+        <FAQItem q="Wat is tijdelijke vakantieverhuur?" a={`Bij vakantieverhuur verhuurt de bewoner de hele woning. De bewoner is zelf niet thuis.\nDit is anders dan een Bed & Breakfast, waarbij de bewoner wel thuis is.`} />
+        <FAQItem q="Waar komt deze data vandaan?" a="Deze website toont openbare gegevens van de Gemeente Amsterdam, gepubliceerd op Overheid.nl. Het gaat alleen om verleende vergunningen." />
+        <FAQItem q="Zijn er ook andere regels?" a={`Jazeker. Naast de regels van de gemeente, gelden ook de regels van bijvoorbeeld een Vereniging van Eigenaren (VvE). Als de VvE verhuur verbiedt, mag het niet.`} l="https://www.amsterdam.nl/wonen-bouwen-verbouwen/woonruimte-verhuren/regels-verhuur-woning/" lt="Bekijk meer regels op amsterdam.nl" />
+        <FAQItem q="Wat zijn de belangrijkste voorwaarden?" a={`De aanvrager moet hoofdbewoner zijn en ingeschreven staan op het adres. Verhuur is toegestaan voor maximaal 30 nachten per jaar en aan maximaal 4 personen per keer.`} />
+        <FAQItem q="Wat kost een vergunning en hoe lang is die geldig?" a={`Een vergunning kost € 73,30 (in 2025). De vergunning is geldig voor het lopende jaar tot 1 april van het volgende jaar.`} />
+        <FAQItem q="Betekent een vergunning ook verhuur?" a="Nee, een vergunning geeft alleen toestemming. Het is niet zeker of er ook echt is verhuurd. Die informatie is niet openbaar." />
+        <FAQItem q="Hoe hoog zijn de boetes?" a={`Voor verhuur zonder vergunning of het niet vooraf melden, kan een boete volgen. Voor particulieren is dit € 1.500,-.`} />
+        <FAQItem q="Nieuwe regels voor Centrum en De Pijp per 2026" a={`In het Centrum en De Pijp wordt het aantal nachten mogelijk verlaagd naar 15 per jaar. Deze regel gaat waarschijnlijk in op 1 april 2026.`} />
     </div>
 );
 export default FAQSection;
