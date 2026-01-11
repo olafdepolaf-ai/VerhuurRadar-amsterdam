@@ -2,8 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import * as L from 'leaflet';
 import { GroupedLocation, PermitStatus, LatLngCoordinate } from '../types';
 
-// Force Rewrite: Fix Syntax Error and restore functionality
-
 interface MapProps {
     center: LatLngCoordinate;
     locations: GroupedLocation[];
@@ -27,14 +25,14 @@ const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, se
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         }).addTo(mapRef.current);
-        
+
         const tilePane = mapRef.current.getPane('tilePane');
         if (tilePane) {
             tilePane.style.opacity = '0.85';
         }
 
         L.control.zoom({ position: 'bottomright' }).addTo(mapRef.current);
-        
+
         if (mapRef.current.getPane('popupPane')) {
             mapRef.current.getPane('popupPane')!.style.zIndex = '1001';
         }
@@ -68,6 +66,7 @@ const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, se
 
         if (userMarkerRef.current) {
             userMarkerRef.current.setLatLng(center);
+            if (!map.hasLayer(userMarkerRef.current)) userMarkerRef.current.addTo(map);
         } else {
             userMarkerRef.current = L.marker(center, { icon }).addTo(map);
         }
@@ -75,6 +74,7 @@ const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, se
         // Radius Circle
         if (radiusCircleRef.current) {
             radiusCircleRef.current.setLatLng(center);
+            if (!map.hasLayer(radiusCircleRef.current)) radiusCircleRef.current.addTo(map);
         } else {
             radiusCircleRef.current = L.circle(center, {
                 radius: 200,
@@ -84,7 +84,7 @@ const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, se
                 weight: 2
             }).addTo(map);
         }
-        
+
         // Fit bounds to the circle dynamically
         const circleBounds = radiusCircleRef.current.getBounds();
         map.fitBounds(circleBounds, { padding: [10, 10] });
@@ -140,7 +140,7 @@ const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, se
             if (isSelected) {
                 marker.bringToFront();
                 if (!marker.isPopupOpen()) {
-                  marker.openPopup();
+                    marker.openPopup();
                 }
             }
         });
