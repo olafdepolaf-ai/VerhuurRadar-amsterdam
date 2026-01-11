@@ -1,20 +1,34 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 📡 VerhuurRadar Amsterdam
 
-# Run and deploy your AI Studio app
+Inzicht in de vakantieverhuur vergunningen in Amsterdam. 
 
-This contains everything you need to run your app locally.
+Met deze applicatie kunnen bewoners en geïnteresseerden eenvoudig op de kaart zien waar actuele vergunningen voor vakantieverhuur (zoals Airbnb) zijn verleend. De data wordt direct opgehaald uit de officiële bronnen van de gemeente Amsterdam.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1A-p2M7PzbwIYTh-5x92asvBOH-ZIXX9r
+## ✨ Functionaliteiten
 
-## Run Locally
+- **Interactieve Kaart**: Visualisatie van alle vergunningen in de stad.
+- **Zoeken op Adres**: Vind direct de status van een specifieke locatie.
+- **📍 Huidige Locatie**: Gebruik je GPS om direct in je eigen buurt te scannen.
+- **🗺️ Zoek in dit gebied**: Verplaats de kaart en scan een nieuwe wijk met één klik.
+- **Historische Data**: Bekijk vergunningen van de afgelopen jaren (2021-2025).
+- **Notificaties (Firebase)**: Mogelijkheid om alerts in te stellen voor specifieke adressen.
 
-**Prerequisites:**  Node.js
+## 🛠️ Installatie (Lokaal)
 
+**Vereisten:** Node.js (v18+)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. Clone de repository.
+2. Gebruik `npm install` om alle dependencies te installeren.
+3. Maak een `.env` bestand aan met de benodigde Firebase configuratie.
+4. Run de app met:
+   ```bash
+   npm run dev
+   ```
+
+## 🚀 Deployment
+
+De app is geoptimaliseerd voor deployment op **Vercel**. 
+Bij elke push naar de `main` branch wordt er automatisch een nieuwe versie gebouwd en live gezet.
+
+---
+*Gemaakt met ❤️ voor een leefbaar Amsterdam.*
