@@ -8,9 +8,10 @@ interface MapProps {
     onMarkerClick: (id: string) => void;
     selectedLocationId?: string;
     isMobileListCollapsed?: boolean;
+    onMapMoveEnd?: (center: LatLngCoordinate) => void;
 }
 
-const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, selectedLocationId, isMobileListCollapsed }) => {
+const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, selectedLocationId, isMobileListCollapsed, onMapMoveEnd }) => {
     const mapRef = useRef<L.Map | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<{ [key: string]: L.CircleMarker }>({});
@@ -36,6 +37,13 @@ const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, se
         if (mapRef.current.getPane('popupPane')) {
             mapRef.current.getPane('popupPane')!.style.zIndex = '1001';
         }
+
+        mapRef.current.on('moveend', () => {
+            if (mapRef.current) {
+                const c = mapRef.current.getCenter();
+                if (onMapMoveEnd) onMapMoveEnd({ lat: c.lat, lng: c.lng });
+            }
+        });
 
         return () => {
             mapRef.current?.remove();

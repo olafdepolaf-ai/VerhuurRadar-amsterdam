@@ -4,9 +4,9 @@ import { searchAddress, lookupAddress } from '../services/apiService';
 
 // Force Update: 1722424800000
 
-interface AddressSearchProps { onAddressSelect: (address: AddressResult) => void; isCompact?: boolean; initialValue?: string; onClear?: () => void; }
+interface AddressSearchProps { onAddressSelect: (address: AddressResult) => void; isCompact?: boolean; initialValue?: string; onClear?: () => void; onUseLocation?: () => void; }
 
-const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompact = false, initialValue = '', onClear }) => {
+const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompact = false, initialValue = '', onClear, onUseLocation }) => {
     const [query, setQuery] = useState(initialValue);
     const [suggestions, setSuggestions] = useState<AddressResult[]>([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -14,6 +14,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
     const [focusedIndex, setFocusedIndex] = useState(-1);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [showLocationOption, setShowLocationOption] = useState(false);
 
     useEffect(() => { setQuery(initialValue); }, [initialValue]);
 
@@ -38,6 +39,24 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
 
         return () => clearTimeout(timeoutId);
     }, [query, initialValue]);
+
+    useEffect(() => {
+        // Show location option if input is empty but focused
+        const el = inputRef.current;
+        const handleFocus = () => { if (!query) setShowLocationOption(true); };
+        const handleBlur = () => { setTimeout(() => setShowLocationOption(false), 200); }; // Delay to allow click
+
+        if (el && onUseLocation) {
+            el.addEventListener('focus', handleFocus);
+            el.addEventListener('blur', handleBlur);
+        }
+        return () => {
+            if (el && onUseLocation) {
+                el.removeEventListener('focus', handleFocus);
+                el.removeEventListener('blur', handleBlur);
+            }
+        };
+    }, [query, onUseLocation]);
 
     const handleSelect = async (item: AddressResult) => {
         setQuery(item.weergavenaam); setIsOpen(false); setFocusedIndex(-1);
@@ -73,7 +92,19 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
             </div>
             {isOpen && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 max-h-72 overflow-y-auto z-[4000]">
-                    <ul className="divide-y divide-slate-50">{suggestions.map((item, index) => <li key={item.id} onClick={() => handleSelect(item)} className={`px-4 py-3 cursor-pointer text-left ${index === focusedIndex ? 'bg-red-50' : 'hover:bg-red-50'}`}>{item.weergavenaam}</li>)}</ul>
+                    <ul className="divide-y divide-slate-50">
+                        {suggestions.map((item, index) => <li key={item.id} onClick={() => handleSelect(item)} className={`px-4 py-3 cursor-pointer text-left ${index === focusedIndex ? 'bg-red-50' : 'hover:bg-red-50'}`}>{item.weergavenaam}</li>)}
+                    </ul>
+                </div>
+            )}
+            {showLocationOption && !isOpen && onUseLocation && !query && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-[4000]">
+                    <div onClick={() => { if (onUseLocation) onUseLocation(); setShowLocationOption(false); }} className="px-4 py-3 cursor-pointer text-left hover:bg-slate-50 flex items-center gap-3 text-red-600 font-medium transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                            <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                        </svg>
+                        Gebruik mijn huidige locatie
+                    </div>
                 </div>
             )}
         </div>

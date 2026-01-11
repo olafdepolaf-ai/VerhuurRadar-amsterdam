@@ -9,9 +9,9 @@ import AlertModal from './components/AlertModal';
 import ShowAlertsModal from './components/ShowAlertsModal';
 import HeaderProfile from './components/HeaderProfile';
 import ProfileModal from './components/ProfileModal';
-import { AddressResult, GroupedLocation, PermitRecord, PermitStatus, LatLngCoordinate, SavedAlert } from './types';
+import { AddressResult, GroupedLocation, PermitRecord, PermitStatus, LatLngCoordinate, SavedAlert, RDCoordinate } from './types';
 import { fetchPermitsForYear, fetchRecentPermits, fetchActivePermitCount, searchAddress, lookupAddress } from './services/apiService';
-import { parsePointString } from './services/geoService';
+import { parsePointString, wgs84ToRd } from './services/geoService';
 import { useAuth } from './contexts/AuthContext';
 import { loginWithGoogle, logout, deleteCurrentUserAccount } from './services/authService';
 import { fetchAlerts, addAlert, removeAlert, toggleAlertEmail } from './services/alertService';
@@ -30,6 +30,9 @@ function App() {
   const [foundPermits, setFoundPermits] = useState<PermitRecord[]>([]);
   const [selectedLocationId, setSelectedLocationId] = useState<string | undefined>();
   const [userLocation, setUserLocation] = useState<LatLngCoordinate | null>(null);
+  const [mapCenter, setMapCenter] = useState<LatLngCoordinate | null>(null);
+  const [showSearchHere, setShowSearchHere] = useState(false);
+  const [lastSearchedCenter, setLastSearchedCenter] = useState<LatLngCoordinate | null>(null);
   const [recentPermits, setRecentPermits] = useState<PermitRecord[]>([]);
   const [totalActiveCount, setTotalActiveCount] = useState<number | null>(null);
   const [isMobileListCollapsed, setIsMobileListCollapsed] = useState(false);
@@ -59,14 +62,66 @@ function App() {
     return acc;
   }, {} as { [key: string]: GroupedLocation })) as GroupedLocation[]).sort((a, b) => a.address.localeCompare(b.address)), [foundPermits]);
 
+  const searchByRD = async (rd: RDCoordinate, wgs: LatLngCoordinate | null, addressLabel: string) => {
+    setFoundPermits([]);
+    setHasSearched(true);
+    setLoading(true);
+    if (wgs) {
+      setUserLocation(wgs);
+      setMapCenter(wgs);
+      setLastSearchedCenter(wgs);
+      setShowSearchHere(false);
+    }
+
+    // Mock address object if we don't have a full one, or update currentAddress
+    setCurrentAddress({ id: 'loc', weergavenaam: addressLabel, centroide_rd: `POINT(${rd.x} ${rd.y})`, centroide_ll: wgs ? `POINT(${wgs.lng} ${wgs.lat})` : '' } as AddressResult);
+
+    for (let y = 2025; y >= 2021; y--) {
+      setLoadingStatus(String(y));
+      const p = await fetchPermitsForYear(rd, 200, y);
+      setFoundPermits(prev => [...prev, ...p]);
+    }
+    setLoading(false);
+  };
+
   const handleAddressSelect = async (addr: AddressResult) => {
     if (!addr.centroide_rd || !addr.centroide_ll) return;
-    setFoundPermits([]); setCurrentAddress(addr); setHasSearched(true); setLoading(true);
     const wgs = parsePointString(addr.centroide_ll);
     const rd = parsePointString(addr.centroide_rd);
-    if (wgs) setUserLocation({ lat: wgs.y, lng: wgs.x });
-    if (rd) { for (let y = 2025; y >= 2021; y--) { setLoadingStatus(String(y)); const p = await fetchPermitsForYear(rd, 200, y); setFoundPermits(prev => [...prev, ...p]); } }
-    setLoading(false);
+    if (wgs && rd) {
+      await searchByRD(rd, { lat: wgs.y, lng: wgs.x }, addr.weergavenaam);
+    }
+  };
+
+  const handleUseLocation = () => {
+    if (!navigator.geolocation) return;
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const { latitude, longitude } = pos.coords;
+      const rd = wgs84ToRd(latitude, longitude);
+      searchByRD(rd, { lat: latitude, lng: longitude }, "Mijn Locatie");
+    }, (err) => {
+      console.error(err);
+      setLoading(false);
+      alert("Locatie ophalen mislukt.");
+    });
+  };
+
+  const handleMapMoveEnd = (center: LatLngCoordinate) => {
+    setMapCenter(center);
+    if (lastSearchedCenter) {
+      const dist = Math.sqrt(Math.pow(center.lat - lastSearchedCenter.lat, 2) + Math.pow(center.lng - lastSearchedCenter.lng, 2));
+      if (dist > 0.002) { // Approx 200m
+        setShowSearchHere(true);
+      }
+    }
+  };
+
+  const handleSearchHere = () => {
+    if (mapCenter) {
+      const rd = wgs84ToRd(mapCenter.lat, mapCenter.lng);
+      searchByRD(rd, mapCenter, "Geselecteerde locatie");
+    }
   };
 
   const handleReset = () => { setHasSearched(false); };
@@ -83,9 +138,29 @@ function App() {
   return (
     <div className="h-screen w-full flex flex-col font-sans">
       {!hasSearched ? (
-        <div className="flex-1 overflow-y-auto"><div className="min-h-full flex flex-col items-center p-6"><div className="w-full max-w-xl text-center flex-grow pt-10"><div className="mb-6 flex items-center justify-center gap-3"><VerhuurRadarIcon className="w-16 h-16" /><h1 className="text-6xl font-bold"><span className="text-slate-900">Verhuur</span><span className="text-red-600">Radar</span></h1></div><p className="text-lg text-slate-600 mb-8">Inzicht in alle vergunningen voor vakantieverhuur in Amsterdam.</p><AddressSearch onAddressSelect={handleAddressSelect} /><div className="w-full max-w-md space-y-3 mt-10">{recentPermits.length > 0 && <div className="text-xs font-bold text-slate-400 uppercase tracking-widest text-left">Laatst verleend</div>}{recentPermits.map(p => <div key={p.id} onClick={() => handleRecentPermitClick(p.address)} className="bg-white border rounded p-3 flex justify-between items-center cursor-pointer hover:bg-red-50"><span className="font-semibold text-sm">{p.address}</span><span className="text-xs text-slate-500">{formatRelativeDate(p.date)}</span></div>)}</div>{totalActiveCount && <div className="mt-8 text-center w-full max-w-md"><div className="bg-red-50 border rounded-lg p-4"><p className="font-medium mb-2">Vandaag zijn er <span className="font-bold text-red-600">{totalActiveCount.toLocaleString('nl-NL')}</span> vergunningen actief</p><a href="https://www.amsterdam.nl/wonen-leven/wonen/vakantieverhuur/" target="_blank" rel="noopener noreferrer" className="text-red-600 text-sm font-semibold hover:underline">Meer info op Amsterdam.nl →</a></div></div>}<FAQSection /></div><footer className="w-full mt-16 pb-6 text-center"><div className="flex flex-col items-center gap-2"><div className="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-wider"><span>Made with</span><AmsterdamHeartIcon className="w-4 h-4" /><span>in Amsterdam</span></div><div className="text-slate-300 text-[10px]">Data bron: Overheid.nl</div></div></footer></div></div>
+        <div className="flex-1 overflow-y-auto"><div className="min-h-full flex flex-col items-center p-6"><div className="w-full max-w-xl text-center flex-grow pt-10"><div className="mb-6 flex items-center justify-center gap-3"><VerhuurRadarIcon className="w-16 h-16" /><h1 className="text-6xl font-bold"><span className="text-slate-900">Verhuur</span><span className="text-red-600">Radar</span></h1></div><p className="text-lg text-slate-600 mb-8">Inzicht in alle vergunningen voor vakantieverhuur in Amsterdam.</p><AddressSearch onAddressSelect={handleAddressSelect} onUseLocation={handleUseLocation} /><div className="w-full max-w-md space-y-3 mt-10">{recentPermits.length > 0 && <div className="text-xs font-bold text-slate-400 uppercase tracking-widest text-left">Laatst verleend</div>}{recentPermits.map(p => <div key={p.id} onClick={() => handleRecentPermitClick(p.address)} className="bg-white border rounded p-3 flex justify-between items-center cursor-pointer hover:bg-red-50"><span className="font-semibold text-sm">{p.address}</span><span className="text-xs text-slate-500">{formatRelativeDate(p.date)}</span></div>)}</div>{totalActiveCount && <div className="mt-8 text-center w-full max-w-md"><div className="bg-red-50 border rounded-lg p-4"><p className="font-medium mb-2">Vandaag zijn er <span className="font-bold text-red-600">{totalActiveCount.toLocaleString('nl-NL')}</span> vergunningen actief</p><a href="https://www.amsterdam.nl/wonen-leven/wonen/vakantieverhuur/" target="_blank" rel="noopener noreferrer" className="text-red-600 text-sm font-semibold hover:underline">Meer info op Amsterdam.nl →</a></div></div>}<FAQSection /></div><footer className="w-full mt-16 pb-6 text-center"><div className="flex flex-col items-center gap-2"><div className="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-wider"><span>Made with</span><AmsterdamHeartIcon className="w-4 h-4" /><span>in Amsterdam</span></div><div className="text-slate-300 text-[10px]">Data bron: Overheid.nl</div></div></footer></div></div>
       ) : (
-        <div className="flex flex-col h-full"><header className="flex-none bg-white border-b h-16 px-4 flex items-center justify-between z-[2000] shadow-sm"><div onClick={handleReset} className="cursor-pointer flex items-center gap-3"><VerhuurRadarIcon className="w-8 h-8" /><div className="hidden sm:block"><span className="font-bold text-2xl"><span className="text-slate-900">Verhuur</span><span className="text-red-600">Radar</span></span></div></div><div className="flex-1 max-w-xl mx-auto hidden md:flex"><AddressSearch onAddressSelect={handleAddressSelect} isCompact initialValue={currentAddress?.weergavenaam} onClear={() => { }} /></div><HeaderProfile onLogin={() => setIsAlertModalOpen(true)} onLogout={handleLogout} onShowAlerts={() => setIsShowAlertsModalOpen(true)} onShowProfile={() => setIsProfileModalOpen(true)} /></header><div className="flex-1 flex flex-col md:flex-row overflow-hidden"><div className="flex flex-col flex-1"><div className="md:hidden p-2 bg-white border-b"><AddressSearch onAddressSelect={handleAddressSelect} isCompact initialValue={currentAddress?.weergavenaam} onClear={() => { }} /></div><div className="flex-1 relative"><div className="absolute top-4 right-4 z-[999]"><StatsWidget permits={foundPermits} /></div>{userLocation && <MapComponent center={userLocation} locations={groupedLocations} onMarkerClick={setSelectedLocationId} selectedLocationId={selectedLocationId} isMobileListCollapsed={isMobileListCollapsed} />}<MapLegend /></div></div><div className={`w-full md:w-72 flex flex-col border-t md:border-t-0 md:border-r transition-all duration-300 ${isMobileListCollapsed ? 'h-14' : 'h-[45vh]'} md:h-full`}><ResultList locations={groupedLocations} onSelect={setSelectedLocationId} selectedLocationId={selectedLocationId} isLoading={loading} loadingStatus={loadingStatus} isMobileCollapsed={isMobileListCollapsed} onToggleMobileCollapse={() => setIsMobileListCollapsed(!isMobileListCollapsed)} hasActiveAlert={hasActiveAlert} onAlertClick={() => { if (currentUser && hasActiveAlert) { setIsShowAlertsModalOpen(true) } else { setIsAlertModalOpen(true) } }} /></div></div></div>
+        <div className="flex flex-col h-full">
+          <header className="flex-none bg-white border-b h-16 px-4 flex items-center justify-between z-[2000] shadow-sm"><div onClick={handleReset} className="cursor-pointer flex items-center gap-3"><VerhuurRadarIcon className="w-8 h-8" /><div className="hidden sm:block"><span className="font-bold text-2xl"><span className="text-slate-900">Verhuur</span><span className="text-red-600">Radar</span></span></div></div><div className="flex-1 max-w-xl mx-auto hidden md:flex"><AddressSearch onAddressSelect={handleAddressSelect} isCompact initialValue={currentAddress?.weergavenaam} onClear={() => { }} onUseLocation={handleUseLocation} /></div><HeaderProfile onLogin={() => setIsAlertModalOpen(true)} onLogout={handleLogout} onShowAlerts={() => setIsShowAlertsModalOpen(true)} onShowProfile={() => setIsProfileModalOpen(true)} /></header>
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+            <div className="flex flex-col flex-1">
+              <div className="md:hidden p-2 bg-white border-b"><AddressSearch onAddressSelect={handleAddressSelect} isCompact initialValue={currentAddress?.weergavenaam} onClear={() => { }} onUseLocation={handleUseLocation} /></div>
+              <div className="flex-1 relative">
+                <div className="absolute top-4 right-4 z-[999]"><StatsWidget permits={foundPermits} /></div>
+                {/* Search Here Button Overlay */}
+                {showSearchHere && (
+                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000]">
+                    <button onClick={handleSearchHere} className="bg-white text-slate-900 px-4 py-2 rounded-full shadow-lg font-semibold flex items-center gap-2 hover:bg-slate-50 border border-slate-200 transition-all">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-red-600"><path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>
+                      Zoek in dit gebied
+                    </button>
+                  </div>
+                )}
+                {userLocation && <MapComponent center={userLocation} locations={groupedLocations} onMarkerClick={setSelectedLocationId} selectedLocationId={selectedLocationId} isMobileListCollapsed={isMobileListCollapsed} onMapMoveEnd={handleMapMoveEnd} />}
+                <MapLegend />
+              </div>
+            </div>
+            <div className={`w-full md:w-72 flex flex-col border-t md:border-t-0 md:border-r transition-all duration-300 ${isMobileListCollapsed ? 'h-14' : 'h-[45vh]'} md:h-full`}><ResultList locations={groupedLocations} onSelect={setSelectedLocationId} selectedLocationId={selectedLocationId} isLoading={loading} loadingStatus={loadingStatus} isMobileCollapsed={isMobileListCollapsed} onToggleMobileCollapse={() => setIsMobileListCollapsed(!isMobileListCollapsed)} hasActiveAlert={hasActiveAlert} onAlertClick={() => { if (currentUser && hasActiveAlert) { setIsShowAlertsModalOpen(true) } else { setIsAlertModalOpen(true) } }} /></div></div></div>
       )}
       <AlertModal isOpen={isAlertModalOpen} onClose={() => { setIsAlertModalOpen(false); setLoginError(null); }} isLoggedIn={!!currentUser} hasActiveAlert={hasActiveAlert} onLogin={handleLogin} onSubscribe={handleSubscribe} onUnsubscribe={handleUnsubscribe} userEmail={currentUser?.email || ""} loginError={loginError} />
       <ShowAlertsModal isOpen={isShowAlertsModalOpen} onClose={() => setIsShowAlertsModalOpen(false)} alerts={savedAlerts} onSelectAlert={handleSelectSavedAlert} onRemoveAlert={handleRemoveSavedAlert} onToggleEmail={handleToggleAlertEmail} />
