@@ -83,7 +83,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
     return (
         <div ref={wrapperRef} className={`relative w-full ${isCompact ? '' : 'max-w-2xl mx-auto'}`}>
             <div className={`flex w-full rounded-xl bg-white border border-slate-200 overflow-hidden ${isCompact ? 'h-10 shadow-none' : 'h-14 shadow-lg'}`}>
-                <input ref={inputRef} type="text" value={query} onChange={e => setQuery(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type een adres in Amsterdam..." className={`w-full h-full bg-transparent outline-none text-slate-900 placeholder-slate-400 ${isCompact ? 'px-3 text-sm' : 'px-6 text-lg'}`} autoComplete="off" />
+                <input ref={inputRef} type="text" value={query} onChange={e => setQuery(e.target.value)} onKeyDown={handleKeyDown} placeholder="Zoeken op adres of postcode" className={`w-full h-full bg-transparent outline-none text-slate-900 placeholder-slate-400 ${isCompact ? 'px-3 text-sm' : 'px-6 text-lg'}`} autoComplete="off" />
                 {onClear && query ? (
                     <button type="button" onClick={handleClear} className="bg-slate-100 hover:bg-slate-200 w-10 flex items-center justify-center"><div className="rounded-full p-1 border border-slate-900"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 text-slate-900"><path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" /></svg></div></button>
                 ) : (
