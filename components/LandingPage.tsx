@@ -72,9 +72,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
                             </div>
                         ))}
                     </div>
-                    <div className="hidden sm:block">
-                        <TrendChart totalActiveCount={totalActiveCount} />
-                    </div>
+                    <TrendChart totalActiveCount={totalActiveCount} />
                     <FAQSection />
                 </div>
                 <footer className="w-full mt-16 pb-10 pt-8 border-t border-slate-200">
