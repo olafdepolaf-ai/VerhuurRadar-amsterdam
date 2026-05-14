@@ -2,7 +2,6 @@ import { collection, doc, setDoc, getDocs, deleteDoc, updateDoc, query } from "f
 import { db } from "./firebase";
 import { SavedAlert } from "../types";
 
-// Force Update: 1722424800000
 
 const getAlertsCollection = (userId: string) => {
     return collection(db, "users", userId, "alerts");

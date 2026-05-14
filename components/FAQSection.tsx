@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 
-// Force Update: 1722424800000
 
 const FAQItem = ({ q, a, l, lt }: { q: string, a: string, l?: string, lt?: string }) => {
     const [isOpen, setIsOpen] = useState(false);

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AddressResult } from '../types';
 import { searchAddress, lookupAddress, resolvePostcode6, resolvePostcode4 } from '../services/apiService';
 
-// Force Update: 1722424800000
 
 interface AddressSearchProps { onAddressSelect: (address: AddressResult) => void; isCompact?: boolean; initialValue?: string; onClear?: () => void; onUseLocation?: () => void; }
 

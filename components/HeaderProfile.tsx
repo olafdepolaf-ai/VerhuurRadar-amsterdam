@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-// Force Update: 1722424800000
 
 interface HeaderProfileProps { onLogin: () => void; onLogout: () => void; onShowAlerts: () => void; onShowProfile: () => void; }
 

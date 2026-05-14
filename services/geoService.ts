@@ -1,6 +1,5 @@
 import { LatLngCoordinate, RDCoordinate } from "../types";
 
-// Force Update: 1722424800000
 
 // Approximate conversion for RD New to WGS84
 export const rdToWgs84 = (x: number, y: number): LatLngCoordinate => {

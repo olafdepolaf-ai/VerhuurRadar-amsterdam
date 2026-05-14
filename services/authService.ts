@@ -1,7 +1,6 @@
 import { signInWithPopup, signOut, deleteUser, User } from "firebase/auth";
 import { auth, googleProvider } from "./firebase";
 
-// Force Update: 1722424800000
 
 export const loginWithGoogle = async (): Promise<User> => {
     try {

@@ -1,6 +1,5 @@
 import React from 'react';
 
-// Force Update: 1722424800000
 
 interface AlertModalProps { isOpen: boolean; onClose: () => void; isLoggedIn: boolean; hasActiveAlert: boolean; onLogin: () => void; onUnsubscribe: () => void; onSubscribe: () => void; userEmail?: string; loginError?: { type: string, message: string } | null; }
 

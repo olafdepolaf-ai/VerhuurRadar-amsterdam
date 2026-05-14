@@ -1,7 +1,17 @@
 import { AddressResult, PermitRecord, RDCoordinate } from "../types";
 import { rdToWgs84, wgs84ToRd } from "./geoService";
 
-// Force Update: 1722424800000
+
+interface PdokSuggestDoc {
+    id: string;
+    weergavenaam: string;
+    centroide_ll?: string;
+    centroide_rd?: string;
+}
+
+interface PdokResponse {
+    response: { docs: PdokSuggestDoc[] };
+}
 
 const PDOK_SUGGEST_URL = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/suggest";
 const PDOK_LOOKUP_URL = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/lookup";
@@ -50,8 +60,8 @@ export const searchAddress = async (query: string): Promise<AddressResult[]> => 
     const url = `${PDOK_SUGGEST_URL}?q=${encodeURIComponent(query)}&fq=gemeentenaam:Amsterdam&rows=7&wt=json`;
     try {
         const response = await fetch(url);
-        const data = await response.json();
-        return data.response.docs.map((doc: any) => ({
+        const data: PdokResponse = await response.json();
+        return data.response.docs.map(doc => ({
             id: doc.id,
             weergavenaam: doc.weergavenaam
         }));
@@ -63,7 +73,7 @@ export const resolvePostcode6 = async (query: string): Promise<AddressResult | n
     const url = `${PDOK_SUGGEST_URL}?q=${encodeURIComponent(pc6)}&fq=type:postcode&rows=1&wt=json`;
     try {
         const response = await fetch(url);
-        const data = await response.json();
+        const data: PdokResponse = await response.json();
         if (!data.response.docs.length) return null;
         const details = await lookupAddress(data.response.docs[0].id);
         if (!details) return null;
@@ -75,8 +85,8 @@ export const resolvePostcode4 = async (query: string): Promise<AddressResult | n
     const url = `${PDOK_SUGGEST_URL}?q=${encodeURIComponent(query)}&fq=type:postcode&rows=30&fl=id,weergavenaam,centroide_ll&wt=json`;
     try {
         const response = await fetch(url);
-        const data = await response.json();
-        const docs: { centroide_ll?: string }[] = data.response.docs;
+        const data: PdokResponse = await response.json();
+        const docs = data.response.docs;
         if (!docs.length) return null;
         let sumLat = 0, sumLng = 0, count = 0;
         for (const doc of docs) {

@@ -1,7 +1,6 @@
 import React from 'react';
 import { SavedAlert } from '../types';
 
-// Force Update: 1722424800000
 
 interface ShowAlertsModalProps { isOpen: boolean; onClose: () => void; alerts: SavedAlert[]; onSelectAlert: (address: string) => void; onRemoveAlert: (address: string) => void; onToggleEmail: (address: string) => void; }
 

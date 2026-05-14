@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-// Force Update: 1722424800000
 
 interface ProfileModalProps { isOpen: boolean; onClose: () => void; onDeleteAccount: () => void; }
 

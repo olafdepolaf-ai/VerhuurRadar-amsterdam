@@ -1,14 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { GroupedLocation, PermitRecord } from '../types';
+import { PERMIT_YEARS } from '../constants';
 
-// Force Update: 1722424800000
 
 interface ResultListProps { locations: GroupedLocation[]; onSelect: (id: string) => void; selectedLocationId?: string; isLoading?: boolean; loadingStatus?: string; isMobileCollapsed?: boolean; onToggleMobileCollapse?: () => void; hasActiveAlert?: boolean; onAlertClick?: () => void; searchedAddress?: string; }
 
 const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLocationId, isLoading = false, loadingStatus = "", isMobileCollapsed = false, onToggleMobileCollapse, hasActiveAlert = false, onAlertClick, searchedAddress }) => {
     const [isRinging, setIsRinging] = useState(false);
     const prevActiveRef = useRef(hasActiveAlert);
-    const yearsRange = [2026, 2025, 2024, 2023, 2022, 2021];
 
     useEffect(() => {
         if (!prevActiveRef.current && hasActiveAlert) { setIsRinging(true); const timer = setTimeout(() => setIsRinging(false), 800); return () => clearTimeout(timer); }
@@ -64,7 +63,7 @@ const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLo
                         <li key={loc.address} id={`loc-${loc.address}`} onClick={() => onSelect(loc.address)} className={`px-6 py-4 cursor-pointer border-l-4 ${rowClasses}`}>
                             <h3 className="font-medium break-words">{loc.address}</h3>
                             <div className="flex items-center gap-1 mt-2">
-                                {yearsRange.map(year => {
+                                {PERMIT_YEARS.map(year => {
                                     const permit = permitsByYear.get(String(year));
                                     return permit ? <a key={year} href={permit.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className={`text-[10px] w-9 py-0.5 text-center rounded font-bold border hover:ring-1 ${year === 2026 ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>{year}</a> : <span key={year} className="block w-9 h-4 border border-slate-300 bg-white rounded"/>
                                 })}

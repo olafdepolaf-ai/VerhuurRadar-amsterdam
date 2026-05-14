@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "./themes/transit.css";
 
 :root {
   color-scheme: light;

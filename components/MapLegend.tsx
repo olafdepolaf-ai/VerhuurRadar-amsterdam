@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-// Force Update: 1722424800000
 
 const MapLegend: React.FC = () => {
     const [isOpen, setIsOpen] = useState(true);
