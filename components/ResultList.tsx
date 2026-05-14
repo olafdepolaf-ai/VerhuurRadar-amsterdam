@@ -233,7 +233,7 @@ const ResultList: React.FC<ResultListProps> = ({
                         >
                             <h3 className="font-medium break-words">{loc.address}</h3>
                             <div className="flex items-center gap-1 mt-2">
-                                {PERMIT_YEARS.map(year => {
+                                {PERMIT_YEARS.filter(year => !filters || filters.showYears.includes(year)).map(year => {
                                     const permit = permitsByYear.get(String(year));
                                     return permit ? (
                                         <a
