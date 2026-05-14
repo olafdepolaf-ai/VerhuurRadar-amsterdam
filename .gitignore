@@ -24,6 +24,8 @@ dist-ssr
 *.sw?
 .env
 .env.local
+.claude/
+metadata.json
 .env.production
 .env.production.local
 .env.staging

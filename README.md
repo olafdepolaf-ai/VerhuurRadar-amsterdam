@@ -1,34 +1,33 @@
-# 📡 VerhuurRadar Amsterdam
+# VerhuurRadar Amsterdam
 
-Inzicht in de vakantieverhuur vergunningen in Amsterdam. 
+Zoek op adres of locatie en zie direct welke vakantieverhuurvergunningen er actief zijn in de buurt. Data komt rechtstreeks uit de open datasets van de overheid.
 
-Met deze applicatie kunnen bewoners en geïnteresseerden eenvoudig op de kaart zien waar actuele vergunningen voor vakantieverhuur (zoals Airbnb) zijn verleend. De data wordt direct opgehaald uit de officiële bronnen van de gemeente Amsterdam.
+## Wat het doet
 
-## ✨ Functionaliteiten
+- Zoek op adres of gebruik je GPS-locatie
+- Zie actieve en historische vergunningen (2021–heden) op een interactieve kaart
+- Klik door naar de officiële vergunningspagina per adres
+- Verplaats de kaart en zoek in een nieuw gebied met één klik
 
-- **Interactieve Kaart**: Visualisatie van alle vergunningen in de stad.
-- **Zoeken op Adres**: Vind direct de status van een specifieke locatie.
-- **📍 Huidige Locatie**: Gebruik je GPS om direct in je eigen buurt te scannen.
-- **🗺️ Zoek in dit gebied**: Verplaats de kaart en scan een nieuwe wijk met één klik.
-- **Historische Data**: Bekijk vergunningen van de afgelopen jaren (2021-2025).
-- **Notificaties (Firebase)**: Mogelijkheid om alerts in te stellen voor specifieke adressen.
+## Lokaal draaien
 
-## 🛠️ Installatie (Lokaal)
+Node.js 18+ vereist.
 
-**Vereisten:** Node.js (v18+)
+```bash
+npm install
+cp .env.example .env   # vul je Firebase config in
+npm run dev
+```
 
-1. Clone de repository.
-2. Gebruik `npm install` om alle dependencies te installeren.
-3. Maak een `.env` bestand aan met de benodigde Firebase configuratie.
-4. Run de app met:
-   ```bash
-   npm run dev
-   ```
+## Tech
 
-## 🚀 Deployment
+React · TypeScript · Vite · Tailwind CSS · Leaflet · Firebase · Vercel
 
-De app is geoptimaliseerd voor deployment op **Vercel**. 
-Bij elke push naar de `main` branch wordt er automatisch een nieuwe versie gebouwd en live gezet.
+## Data
+
+Vergunningsdata via [repository.overheid.nl](https://repository.overheid.nl/sru).
+Adreszoekfunctie via [PDOK Locatieserver](https://api.pdok.nl).
 
 ---
-*Gemaakt met ❤️ voor een leefbaar Amsterdam.*
+
+Gemaakt door [Olaf Lemmers](https://www.linkedin.com/in/olaflemmers/)
