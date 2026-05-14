@@ -80,11 +80,11 @@ const [currentAddress, setCurrentAddress] = useState<AddressResult | null>(null)
     // Mock address object if we don't have a full one, or update currentAddress
     setCurrentAddress({ id: 'loc', weergavenaam: addressLabel, centroide_rd: `POINT(${rd.x} ${rd.y})`, centroide_ll: wgs ? `POINT(${wgs.lng} ${wgs.lat})` : '' } as AddressResult);
 
-    for (let y = 2026; y >= 2021; y--) {
-      setLoadingStatus(String(y));
-      const p = await fetchPermitsForYear(rd, 200, y);
-      setFoundPermits(prev => [...prev, ...p]);
-    }
+    setLoadingStatus("laden...");
+    const results = await Promise.all(
+      [2026, 2025, 2024, 2023, 2022, 2021].map(y => fetchPermitsForYear(rd, 200, y))
+    );
+    setFoundPermits(results.flat());
     setLoading(false);
   };
 
