@@ -178,7 +178,7 @@ const ResultList: React.FC<ResultListProps> = ({
                                             />
                                             <div className="flex justify-between text-[10px] text-slate-400 mt-1">
                                                 <span>50 m</span>
-                                                <span>5 km</span>
+                                                <span>10 km</span>
                                             </div>
                                         </div>
                                     )}
