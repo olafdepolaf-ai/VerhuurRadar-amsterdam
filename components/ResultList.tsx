@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { GroupedLocation, PermitRecord } from '../types';
-import { PERMIT_YEARS } from '../constants';
+import { PERMIT_YEARS, ACTIVE_YEAR } from '../constants';
 
 
 interface ResultListProps { locations: GroupedLocation[]; onSelect: (id: string) => void; selectedLocationId?: string; isLoading?: boolean; loadingStatus?: string; isMobileCollapsed?: boolean; onToggleMobileCollapse?: () => void; hasActiveAlert?: boolean; onAlertClick?: () => void; searchedAddress?: string; }
@@ -64,7 +64,7 @@ const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLo
                             <div className="flex items-center gap-1 mt-2">
                                 {PERMIT_YEARS.map(year => {
                                     const permit = permitsByYear.get(String(year));
-                                    return permit ? <a key={year} href={permit.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className={`text-[10px] w-9 py-0.5 text-center rounded font-bold border hover:ring-1 ${year === 2026 ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>{year}</a> : <span key={year} className="block w-9 h-4 border border-slate-300 bg-white rounded"/>
+                                    return permit ? <a key={year} href={permit.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className={`text-[10px] w-9 py-0.5 text-center rounded font-bold border hover:ring-1 ${year === ACTIVE_YEAR ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>{year}</a> : <span key={year} className="block w-9 h-4 border border-slate-300 bg-white rounded"/>
                                 })}
                             </div>
                         </li>

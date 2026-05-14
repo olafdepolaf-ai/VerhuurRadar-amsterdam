@@ -3,6 +3,9 @@ export interface TrendDataPoint {
     c: number;
 }
 
+const DUTCH_MONTHS = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+export const monthLabel = (year: number, month: number): string => `${DUTCH_MONTHS[month - 1]} ${year}`;
+
 export const trendData: TrendDataPoint[] = [
     { m: 'Jan 2021', c: 0 },   { m: 'Feb 2021', c: 0 },   { m: 'Mrt 2021', c: 0 },
     { m: 'Apr 2021', c: 0 },   { m: 'Mei 2021', c: 0 },   { m: 'Jun 2021', c: 0 },

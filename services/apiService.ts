@@ -155,6 +155,28 @@ export const fetchActivePermitCount = async (): Promise<number | null> => {
     } catch (error) { return null; }
 };
 
+export const fetchPermitCountForMonth = async (year: number, month: number): Promise<number> => {
+    const mm = String(month).padStart(2, '0');
+    const cacheKey = `monthly_${year}_${mm}`;
+    const cached = getFromCache<number>(cacheKey, 24 * 3600);
+    if (cached !== null) return cached;
+    const nextYear = month === 12 ? year + 1 : year;
+    const nextMm = String(month === 12 ? 1 : month + 1).padStart(2, '0');
+    const cqlQuery = `c.product-area="officielepublicaties" AND dt.creator=="Amsterdam" AND dt.modified>=${year}-${mm}-01 AND dt.modified<${nextYear}-${nextMm}-01 AND dt.title="Besluit vakantieverhuur vergunning Verleend"`.replace(/\s+/g, ' ').trim();
+    const params = new URLSearchParams({ operation: 'searchRetrieve', version: '1.2', query: cqlQuery, maximumRecords: '0' });
+    try {
+        const xmlText = await fetchApi(`${OVERHEID_SRU_URL}?${params.toString()}`);
+        const xmlDoc = new DOMParser().parseFromString(xmlText, 'text/xml');
+        const countNode = findNodeByLocalName(xmlDoc, 'numberOfRecords');
+        if (countNode?.textContent) {
+            const count = parseInt(countNode.textContent, 10);
+            saveToCache(cacheKey, count);
+            return count;
+        }
+        return 0;
+    } catch { return 0; }
+};
+
 export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: number, year: number): Promise<PermitRecord[]> => {
     const x = Math.round(center.x), y = Math.round(center.y);
     const cacheKey = `permits_${x}_${y}_${radiusMeters}_${year}`;
