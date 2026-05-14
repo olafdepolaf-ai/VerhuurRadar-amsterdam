@@ -38,8 +38,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ totalActiveCount }) => {
     <div className="w-full max-w-2xl mx-auto mt-8 bg-white rounded-xl border border-slate-200 p-6 text-left">
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h3 className="text-lg font-bold text-slate-800">Vergunningen Trend</h3>
-          <p className="text-sm text-slate-500">Verleende vergunningen per maand</p>
+          <h3 className="text-lg font-bold text-slate-800">Verleende vergunningen per maand</h3>
         </div>
         <div className="text-right min-w-[80px]">
           {hoveredData ? (
