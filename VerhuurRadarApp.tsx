@@ -17,7 +17,7 @@ import { useAuth } from './contexts/AuthContext';
 import { loginWithGoogle, logout, deleteCurrentUserAccount } from './services/authService';
 import { fetchAlerts, addAlert, removeAlert, toggleAlertEmail } from './services/alertService';
 import { ALERTS_ENABLED } from './features';
-import { PERMIT_YEARS, SEARCH_RADIUS_M, ACTIVE_YEAR } from './constants';
+import { PERMIT_YEARS, SEARCH_RADIUS_M, ACTIVE_YEAR, MAP_MOVE_THRESHOLD_DEG } from './constants';
 
 function VerhuurRadarApp() {
   const { currentUser } = useAuth();
@@ -123,8 +123,7 @@ function VerhuurRadarApp() {
         Math.pow(center.lat - lastSearchedCenter.lat, 2) +
         Math.pow(center.lng - lastSearchedCenter.lng, 2)
       );
-      // ~200m in degrees
-      if (dist > 0.002) setShowSearchHere(true);
+      if (dist > MAP_MOVE_THRESHOLD_DEG) setShowSearchHere(true);
     }
   };
 

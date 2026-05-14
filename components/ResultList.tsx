@@ -36,7 +36,6 @@ const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLo
 
     return (
         <div className="h-full bg-white/80 backdrop-blur-sm flex flex-col">
-            <style>{`@keyframes icon-pop { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.4); opacity: 1; } 70% { transform: scale(0.9); } 100% { transform: scale(1); } } .animate-icon-pop { animation: icon-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }`}</style>
             <div className="flex-none bg-white/90 border-b border-slate-200 px-6 h-14 flex items-center justify-between" onClick={onToggleMobileCollapse}>
                 <h2 className="font-bold text-lg">{locations.length} adressen gevonden</h2>
                 <div className="flex items-center gap-3">
