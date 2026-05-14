@@ -34,10 +34,8 @@ function VerhuurRadarApp() {
   const [recentPermits, setRecentPermits] = useState<PermitRecord[]>([]);
   const [totalActiveCount, setTotalActiveCount] = useState<number | null>(null);
   const [isMobileListCollapsed, setIsMobileListCollapsed] = useState(false);
-  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
-  const [isShowAlertsModalOpen, setIsShowAlertsModalOpen] = useState(false);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [loginError, setLoginError] = useState<{ type: string, message: string } | null>(null);
+  const [modals, setModals] = useState({ alertOpen: false, showAlertsOpen: false, profileOpen: false, loginError: null as { type: string; message: string } | null });
+  const setModal = (patch: Partial<typeof modals>) => setModals(prev => ({ ...prev, ...patch }));
   const [savedAlerts, setSavedAlerts] = useState<SavedAlert[]>([]);
 
   useEffect(() => {
@@ -145,24 +143,24 @@ function VerhuurRadarApp() {
   };
 
   const handleLogin = async () => {
-    setLoginError(null);
+    setModal({ loginError: null });
     try {
       await loginWithGoogle();
-      setIsAlertModalOpen(false);
+      setModal({ alertOpen: false });
     } catch (e: unknown) {
       const err = e as { code: string; message: string };
-      setLoginError({ type: err.code, message: err.message });
+      setModal({ loginError: { type: err.code, message: err.message } });
     }
   };
 
   const handleLogout = async () => logout();
-  const handleDeleteAccount = async () => { await deleteCurrentUserAccount(); setIsProfileModalOpen(false); };
+  const handleDeleteAccount = async () => { await deleteCurrentUserAccount(); setModal({ profileOpen: false }); };
 
   const handleSubscribe = async () => {
     if (currentUser && currentAddress) {
       await addAlert(currentUser.uid, currentAddress.weergavenaam);
       setSavedAlerts(prev => [...prev, { id: currentAddress.weergavenaam, address: currentAddress.weergavenaam, emailEnabled: true, createdAt: Date.now() }]);
-      setIsAlertModalOpen(false);
+      setModal({ alertOpen: false });
     }
   };
 
@@ -170,7 +168,7 @@ function VerhuurRadarApp() {
     if (currentUser && currentAddress) {
       await removeAlert(currentUser.uid, currentAddress.weergavenaam);
       setSavedAlerts(prev => prev.filter(a => a.address !== currentAddress.weergavenaam));
-      setIsAlertModalOpen(false);
+      setModal({ alertOpen: false });
     }
   };
 
@@ -192,15 +190,15 @@ function VerhuurRadarApp() {
   };
 
   const handleSelectSavedAlert = (address: string) => {
-    setIsShowAlertsModalOpen(false);
+    setModal({ showAlertsOpen: false });
     handleRecentPermitClick(address);
   };
 
   const handleAlertClick = () => {
     if (currentUser && hasActiveAlert) {
-      setIsShowAlertsModalOpen(true);
+      setModal({ showAlertsOpen: true });
     } else {
-      setIsAlertModalOpen(true);
+      setModal({ alertOpen: true });
     }
   };
 
@@ -235,10 +233,10 @@ function VerhuurRadarApp() {
             </div>
             {ALERTS_ENABLED && (
               <HeaderProfile
-                onLogin={() => setIsAlertModalOpen(true)}
+                onLogin={() => setModal({ alertOpen: true })}
                 onLogout={handleLogout}
-                onShowAlerts={() => setIsShowAlertsModalOpen(true)}
-                onShowProfile={() => setIsProfileModalOpen(true)}
+                onShowAlerts={() => setModal({ showAlertsOpen: true })}
+                onShowProfile={() => setModal({ profileOpen: true })}
               />
             )}
           </header>
@@ -309,21 +307,21 @@ function VerhuurRadarApp() {
 
       {ALERTS_ENABLED && (
         <AlertModal
-          isOpen={isAlertModalOpen}
-          onClose={() => { setIsAlertModalOpen(false); setLoginError(null); }}
+          isOpen={modals.alertOpen}
+          onClose={() => setModal({ alertOpen: false, loginError: null })}
           isLoggedIn={!!currentUser}
           hasActiveAlert={hasActiveAlert}
           onLogin={handleLogin}
           onSubscribe={handleSubscribe}
           onUnsubscribe={handleUnsubscribe}
           userEmail={currentUser?.email || ""}
-          loginError={loginError}
+          loginError={modals.loginError}
         />
       )}
       {ALERTS_ENABLED && (
         <ShowAlertsModal
-          isOpen={isShowAlertsModalOpen}
-          onClose={() => setIsShowAlertsModalOpen(false)}
+          isOpen={modals.showAlertsOpen}
+          onClose={() => setModal({ showAlertsOpen: false })}
           alerts={savedAlerts}
           onSelectAlert={handleSelectSavedAlert}
           onRemoveAlert={handleRemoveSavedAlert}
@@ -332,8 +330,8 @@ function VerhuurRadarApp() {
       )}
       {ALERTS_ENABLED && (
         <ProfileModal
-          isOpen={isProfileModalOpen}
-          onClose={() => setIsProfileModalOpen(false)}
+          isOpen={modals.profileOpen}
+          onClose={() => setModal({ profileOpen: false })}
           onDeleteAccount={handleDeleteAccount}
         />
       )}
