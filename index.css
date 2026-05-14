@@ -4,3 +4,17 @@
 :root {
   color-scheme: light;
 }
+
+/* Force light mode unconditionally — this app has no dark mode */
+html, body {
+  background-color: #fffcf7;
+  color: #17304d;
+}
+
+@media (prefers-color-scheme: dark) {
+  html, body {
+    background-color: #fffcf7 !important;
+    color: #17304d !important;
+    color-scheme: light !important;
+  }
+}
