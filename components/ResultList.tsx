@@ -136,12 +136,12 @@ const ResultList: React.FC<ResultListProps> = ({
                                         </label>
                                     </div>
                                     {searchRadius !== undefined && onRadiusChange && onRadiusSearch && (
-                                        <div className="pt-3 mt-1 border-t border-slate-100">
+                                        <div className="px-4 py-3 border-t border-slate-100">
                                             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Zoekgebied</p>
                                             <div className="flex items-center justify-between mb-2">
                                                 <span className="text-sm text-slate-600">Straal</span>
                                                 <span className="text-sm font-bold text-slate-800">
-                                                    {searchRadius >= 1000 ? '1 km' : `${searchRadius} m`}
+                                                    {searchRadius >= 1000 ? `${searchRadius / 1000} km` : `${searchRadius} m`}
                                                 </span>
                                             </div>
                                             <input
@@ -157,7 +157,7 @@ const ResultList: React.FC<ResultListProps> = ({
                                             />
                                             <div className="flex justify-between text-[10px] text-slate-400 mt-1">
                                                 <span>50 m</span>
-                                                <span>1 km</span>
+                                                <span>5 km</span>
                                             </div>
                                         </div>
                                     )}
