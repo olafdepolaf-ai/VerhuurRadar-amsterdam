@@ -93,9 +93,12 @@ const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, se
             }).addTo(map);
         }
 
-        // Fit bounds to the circle dynamically
+        // Fit bounds to the circle dynamically, zoom in extra on mobile
         const circleBounds = radiusCircleRef.current.getBounds();
         map.fitBounds(circleBounds, { padding: [10, 10] });
+        if (window.innerWidth < 768) {
+            map.setZoom(Math.min(map.getZoom() + 2, 19));
+        }
 
     }, [center]);
 
