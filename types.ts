@@ -43,6 +43,7 @@ export interface GroupedLocation {
 export interface MapFilters {
     showActive: boolean;
     showInactive: boolean;
+    showYears: number[];
 }
 
 export interface SavedAlert {

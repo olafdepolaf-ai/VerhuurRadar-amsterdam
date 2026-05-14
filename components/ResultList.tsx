@@ -83,7 +83,7 @@ const ResultList: React.FC<ResultListProps> = ({
         return a.address.localeCompare(b.address);
     });
 
-    const isFiltered = filters && (!filters.showActive || !filters.showInactive);
+    const isFiltered = filters && (!filters.showActive || !filters.showInactive || filters.showYears.length < PERMIT_YEARS.length);
 
     return (
         <div className="h-full bg-white/80 backdrop-blur-sm flex flex-col">
@@ -135,6 +135,27 @@ const ResultList: React.FC<ResultListProps> = ({
                                             </span>
                                         </label>
                                     </div>
+                                    {filters && onFiltersChange && (
+                                        <div className="px-4 py-3 border-t border-slate-100">
+                                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Jaren</p>
+                                            {PERMIT_YEARS.map(year => (
+                                                <label key={year} className="flex items-center gap-2.5 py-1.5 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={filters.showYears.includes(year)}
+                                                        onChange={e => {
+                                                            const next = e.target.checked
+                                                                ? [...filters.showYears, year]
+                                                                : filters.showYears.filter(y => y !== year);
+                                                            onFiltersChange({ ...filters, showYears: next });
+                                                        }}
+                                                        className="w-4 h-4 accent-red-600 cursor-pointer"
+                                                    />
+                                                    <span className="text-sm">{year}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
                                     {searchRadius !== undefined && onRadiusChange && onRadiusSearch && (
                                         <div className="px-4 py-3 border-t border-slate-100">
                                             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Zoekgebied</p>

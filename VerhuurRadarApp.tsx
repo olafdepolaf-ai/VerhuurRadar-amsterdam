@@ -34,7 +34,7 @@ function VerhuurRadarApp() {
   const [recentPermits, setRecentPermits] = useState<PermitRecord[]>([]);
   const [totalActiveCount, setTotalActiveCount] = useState<number | null>(null);
   const [isMobileListCollapsed, setIsMobileListCollapsed] = useState(false);
-  const [filters, setFilters] = useState<MapFilters>({ showActive: true, showInactive: true });
+  const [filters, setFilters] = useState<MapFilters>({ showActive: true, showInactive: true, showYears: [...PERMIT_YEARS] });
   const [searchRadius, setSearchRadius] = useState(SEARCH_RADIUS_M);
   const lastSearchRef = useRef<{ rd: RDCoordinate; wgs: LatLngCoordinate | null; label: string } | null>(null);
   const [modals, setModals] = useState({ alertOpen: false, showAlertsOpen: false, profileOpen: false, loginError: null as { type: string; message: string } | null });
@@ -71,9 +71,11 @@ function VerhuurRadarApp() {
   }, [foundPermits]);
 
   const filteredLocations = useMemo(() =>
-    groupedLocations.filter(loc =>
-      loc.status === PermitStatus.ACTIVE ? filters.showActive : filters.showInactive
-    ),
+    groupedLocations.filter(loc => {
+      const statusOk = loc.status === PermitStatus.ACTIVE ? filters.showActive : filters.showInactive;
+      const yearOk = loc.permits.some(p => filters.showYears.includes(parseInt(p.date.substring(0, 4))));
+      return statusOk && yearOk;
+    }),
     [groupedLocations, filters]
   );
 
