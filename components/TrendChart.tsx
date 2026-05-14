@@ -30,7 +30,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ totalActiveCount }) => {
   const maxCount = Math.max(...displayData.map(d => d.c));
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-8 bg-red-50 rounded-xl border border-red-100 p-6">
+    <div className="w-full max-w-2xl mx-auto mt-8 bg-white rounded-xl border border-slate-200 p-6">
       <div className="flex justify-between items-start mb-6">
         <div>
           <h3 className="text-lg font-bold text-slate-800">Vergunningen Trend</h3>
@@ -58,7 +58,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ totalActiveCount }) => {
           <span>0</span>
         </div>
 
-        <div className="flex-1 h-full flex items-end gap-[2px] ml-8 border-b border-red-200 pb-2 relative">
+        <div className="flex-1 h-full flex items-end gap-[2px] ml-8 border-b border-slate-100 pb-2 relative">
           {displayData.map((data, idx) => {
             const heightPercentage = (data.c / maxCount) * 100;
             const isYearStart = data.m.startsWith('Jan');
