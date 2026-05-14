@@ -163,7 +163,7 @@ const [currentAddress, setCurrentAddress] = useState<AddressResult | null>(null)
             <div className="flex flex-col flex-1">
               <div className="md:hidden p-2 bg-white border-b"><AddressSearch onAddressSelect={handleAddressSelect} isCompact initialValue={currentAddress?.weergavenaam} onClear={() => { }} onUseLocation={handleUseLocation} /></div>
               <div className="flex-1 relative">
-                {foundPermits.length > 0 && <div className="absolute top-4 right-4 z-[999]"><StatsWidget permits={foundPermits} /></div>}
+                {foundPermits.length > 0 && <div className="absolute top-4 right-4 z-[999] hidden sm:block"><StatsWidget permits={foundPermits} /></div>}
                 {/* Search Here Button Overlay */}
                 {showSearchHere && (
                   <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000]">

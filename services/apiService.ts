@@ -1,5 +1,5 @@
 import { AddressResult, PermitRecord, RDCoordinate } from "../types";
-import { rdToWgs84 } from "./geoService";
+import { rdToWgs84, wgs84ToRd } from "./geoService";
 
 // Force Update: 1722424800000
 
@@ -56,6 +56,43 @@ export const searchAddress = async (query: string): Promise<AddressResult[]> => 
             weergavenaam: doc.weergavenaam
         }));
     } catch (error) { return []; }
+};
+
+export const resolvePostcode6 = async (query: string): Promise<AddressResult | null> => {
+    const pc6 = query.replace(/\s+/g, '').toUpperCase();
+    const url = `${PDOK_SUGGEST_URL}?q=${encodeURIComponent(pc6)}&fq=type:postcode&rows=1&wt=json`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (!data.response.docs.length) return null;
+        const details = await lookupAddress(data.response.docs[0].id);
+        if (!details) return null;
+        return { ...details, weergavenaam: `Postcode ${pc6}` };
+    } catch { return null; }
+};
+
+export const resolvePostcode4 = async (query: string): Promise<AddressResult | null> => {
+    const url = `${PDOK_SUGGEST_URL}?q=${encodeURIComponent(query)}&fq=type:postcode&rows=30&fl=id,weergavenaam,centroide_ll&wt=json`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        const docs: { centroide_ll?: string }[] = data.response.docs;
+        if (!docs.length) return null;
+        let sumLat = 0, sumLng = 0, count = 0;
+        for (const doc of docs) {
+            const m = doc.centroide_ll?.match(/POINT\s*\(\s*([\d.]+)\s+([\d.]+)\s*\)/i);
+            if (m) { sumLng += parseFloat(m[1]); sumLat += parseFloat(m[2]); count++; }
+        }
+        if (!count) return null;
+        const avgLat = sumLat / count, avgLng = sumLng / count;
+        const rd = wgs84ToRd(avgLat, avgLng);
+        return {
+            id: `pc4_${query}`,
+            weergavenaam: `Postcode ${query}`,
+            centroide_ll: `POINT(${avgLng} ${avgLat})`,
+            centroide_rd: `POINT(${rd.x} ${rd.y})`
+        };
+    } catch { return null; }
 };
 
 export const lookupAddress = async (id: string): Promise<AddressResult | null> => {

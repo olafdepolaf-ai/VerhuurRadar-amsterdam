@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AddressResult } from '../types';
-import { searchAddress, lookupAddress } from '../services/apiService';
+import { searchAddress, lookupAddress, resolvePostcode6, resolvePostcode4 } from '../services/apiService';
 
 // Force Update: 1722424800000
 
@@ -20,10 +20,23 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
 
     useEffect(() => {
         const timeoutId = setTimeout(async () => {
-            if (query.length >= 3 && query !== initialValue) {
+            const q = query.trim();
+            if (q === initialValue) { setIsOpen(false); return; }
+
+            const pc4 = /^\d{4}$/.test(q);
+            const pc6 = /^\d{4}\s*[A-Z]{2}$/i.test(q);
+
+            if (pc4 || pc6) {
+                setIsLoading(true);
+                const result = pc6 ? await resolvePostcode6(q) : await resolvePostcode4(q);
+                setSuggestions(result ? [result] : []);
+                setIsOpen(!!result);
+                setFocusedIndex(-1);
+                setIsLoading(false);
+            } else if (q.length >= 3) {
                 setIsLoading(true);
                 try {
-                    const results = await searchAddress(query);
+                    const results = await searchAddress(q);
                     setSuggestions(results);
                     setFocusedIndex(-1);
                     setIsOpen(true);
@@ -60,8 +73,12 @@ const AddressSearch: React.FC<AddressSearchProps> = ({ onAddressSelect, isCompac
 
     const handleSelect = async (item: AddressResult) => {
         setQuery(item.weergavenaam); setIsOpen(false); setFocusedIndex(-1);
-        const fullDetails = await lookupAddress(item.id);
-        if (fullDetails) onAddressSelect(fullDetails);
+        if (item.centroide_rd && item.centroide_ll) {
+            onAddressSelect(item);
+        } else {
+            const fullDetails = await lookupAddress(item.id);
+            if (fullDetails) onAddressSelect(fullDetails);
+        }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
