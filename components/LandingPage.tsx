@@ -37,7 +37,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
                         </h1>
                     </div>
                     <p className="text-lg text-slate-600 mb-8">
-                        Alle vergunningen voor vakantieverhuur in Amsterdam
+                        Wie in jouw buurt mag tijdelijk verhuren aan toeristen
                     </p>
                     <AddressSearch
                         onAddressSelect={onAddressSelect}
