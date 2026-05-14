@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const LayersIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-slate-600">
@@ -7,9 +7,7 @@ const LayersIcon = () => (
 );
 
 const MapLegend: React.FC = () => {
-    const [isOpen, setIsOpen] = useState(true);
-
-    useEffect(() => { if (window.innerWidth < 768) setIsOpen(false); }, []);
+    const [isOpen, setIsOpen] = useState(false);
 
     const cardClass = "bg-white/95 backdrop-blur border border-slate-200 rounded-lg shadow-xl";
 
