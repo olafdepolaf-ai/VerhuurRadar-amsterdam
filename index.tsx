@@ -3,6 +3,9 @@ import './index.css';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
+import { ACTIVE_THEME } from './theme';
+
+document.documentElement.dataset.theme = ACTIVE_THEME;
 
 // Force Update: 1722424800000
 

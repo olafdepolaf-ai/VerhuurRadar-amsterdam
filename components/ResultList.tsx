@@ -3,12 +3,12 @@ import { GroupedLocation, PermitRecord } from '../types';
 
 // Force Update: 1722424800000
 
-interface ResultListProps { locations: GroupedLocation[]; onSelect: (id: string) => void; selectedLocationId?: string; isLoading?: boolean; loadingStatus?: string; isMobileCollapsed?: boolean; onToggleMobileCollapse?: () => void; hasActiveAlert?: boolean; onAlertClick?: () => void; }
+interface ResultListProps { locations: GroupedLocation[]; onSelect: (id: string) => void; selectedLocationId?: string; isLoading?: boolean; loadingStatus?: string; isMobileCollapsed?: boolean; onToggleMobileCollapse?: () => void; hasActiveAlert?: boolean; onAlertClick?: () => void; searchedAddress?: string; }
 
-const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLocationId, isLoading = false, loadingStatus = "", isMobileCollapsed = false, onToggleMobileCollapse, hasActiveAlert = false, onAlertClick }) => {
+const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLocationId, isLoading = false, loadingStatus = "", isMobileCollapsed = false, onToggleMobileCollapse, hasActiveAlert = false, onAlertClick, searchedAddress }) => {
     const [isRinging, setIsRinging] = useState(false);
     const prevActiveRef = useRef(hasActiveAlert);
-    const yearsRange = [2025, 2024, 2023, 2022, 2021];
+    const yearsRange = [2026, 2025, 2024, 2023, 2022, 2021];
 
     useEffect(() => {
         if (!prevActiveRef.current && hasActiveAlert) { setIsRinging(true); const timer = setTimeout(() => setIsRinging(false), 800); return () => clearTimeout(timer); }
@@ -19,7 +19,21 @@ const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLo
         if (selectedLocationId) { document.getElementById(`loc-${selectedLocationId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
     }, [selectedLocationId]);
 
-    if (isLoading && locations.length === 0) return <div>Loading...</div>;
+    if (isLoading && locations.length === 0) return (
+        <div className="h-full bg-white flex flex-col items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-red-600 mb-4"></div>
+            <div className="text-slate-500 font-medium">Resultaten laden...</div>
+        </div>
+    );
+
+    // Sort locations: searchedAddress first, then alphabetically
+    const sortedLocations = [...locations].sort((a, b) => {
+        if (searchedAddress) {
+            if (a.address === searchedAddress) return -1;
+            if (b.address === searchedAddress) return 1;
+        }
+        return a.address.localeCompare(b.address);
+    });
 
     return (
         <div className="h-full bg-white flex flex-col">
@@ -32,16 +46,27 @@ const ResultList: React.FC<ResultListProps> = ({ locations, onSelect, selectedLo
                 </div>
             </div>
             <ul className="flex-1 overflow-y-auto divide-y">
-                {locations.map(loc => {
-                    // Fix: Explicitly typed `permitsByYear` as Map<string, PermitRecord> to ensure correct type inference for `permit`.
+                {sortedLocations.map(loc => {
                     const permitsByYear = new Map<string, PermitRecord>(loc.permits.map(p => [p.date.substring(0, 4), p]));
+                    const isSearched = searchedAddress && loc.address === searchedAddress;
+                    const isSelected = selectedLocationId === loc.address;
+                    
+                    let rowClasses = 'border-transparent hover:bg-slate-50';
+                    if (isSearched && isSelected) {
+                        rowClasses = 'bg-blue-100 border-blue-600';
+                    } else if (isSearched) {
+                        rowClasses = 'bg-blue-50 border-blue-400 hover:bg-blue-100';
+                    } else if (isSelected) {
+                        rowClasses = 'bg-slate-100 border-slate-600';
+                    }
+
                     return (
-                        <li key={loc.address} id={`loc-${loc.address}`} onClick={() => onSelect(loc.address)} className={`px-6 py-4 cursor-pointer border-l-4 ${selectedLocationId === loc.address ? 'bg-slate-100 border-slate-600' : 'border-transparent hover:bg-slate-50'}`}>
+                        <li key={loc.address} id={`loc-${loc.address}`} onClick={() => onSelect(loc.address)} className={`px-6 py-4 cursor-pointer border-l-4 ${rowClasses}`}>
                             <h3 className="font-medium break-words">{loc.address}</h3>
                             <div className="flex items-center gap-1 mt-2">
                                 {yearsRange.map(year => {
                                     const permit = permitsByYear.get(String(year));
-                                    return permit ? <a key={year} href={permit.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className={`text-[10px] w-9 py-0.5 text-center rounded font-bold border hover:ring-1 ${year === 2025 ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>{year}</a> : <span key={year} className="block w-9 h-4 border border-slate-300 bg-white rounded"/>
+                                    return permit ? <a key={year} href={permit.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className={`text-[10px] w-9 py-0.5 text-center rounded font-bold border hover:ring-1 ${year === 2026 ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>{year}</a> : <span key={year} className="block w-9 h-4 border border-slate-300 bg-white rounded"/>
                                 })}
                             </div>
                         </li>

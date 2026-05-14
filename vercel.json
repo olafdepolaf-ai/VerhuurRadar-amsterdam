@@ -4,6 +4,14 @@
     "outputDirectory": "dist",
     "rewrites": [
         {
+            "source": "/api/overheid-sru/:match*",
+            "destination": "https://repository.overheid.nl/sru/:match*"
+        },
+        {
+            "source": "/api/overheid-sru",
+            "destination": "https://repository.overheid.nl/sru"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }

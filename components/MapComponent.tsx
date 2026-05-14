@@ -64,7 +64,7 @@ const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, se
         if (!map) return;
 
         // User Marker (Red Pin)
-        const pinSvg = `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="fill: #dc2626;"><path d="M16,0A11.2,11.2,0,0,0,4.8,11.2c0,8.8,11.2,20.8,11.2,20.8S27.2,20,27.2,11.2A11.2,11.2,0,0,0,16,0Zm0,16a4.8,4.8,0,1,1,4.8-4.8A4.8,4.8,0,0,1,16,16Z"/><circle cx="16" cy="11.2" r="2.5" fill="#fff"/></svg>`;
+        const pinSvg = `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="fill: #d75c2e;"><path d="M16,0A11.2,11.2,0,0,0,4.8,11.2c0,8.8,11.2,20.8,11.2,20.8S27.2,20,27.2,11.2A11.2,11.2,0,0,0,16,0Zm0,16a4.8,4.8,0,1,1,4.8-4.8A4.8,4.8,0,0,1,16,16Z"/><circle cx="16" cy="11.2" r="2.5" fill="#fff"/></svg>`;
         const icon = L.divIcon({
             html: pinSvg,
             className: '',
@@ -113,7 +113,7 @@ const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, se
         locations.forEach(loc => {
             const marker = L.circleMarker(loc.wgs84, {
                 radius: 5,
-                fillColor: loc.status === PermitStatus.ACTIVE ? '#ef4444' : '#94a3b8',
+                fillColor: loc.status === PermitStatus.ACTIVE ? '#d75c2e' : '#94a3b8',
                 fillOpacity: 1,
                 color: '#ffffff', // White border
                 weight: 1,

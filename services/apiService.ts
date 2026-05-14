@@ -5,7 +5,7 @@ import { rdToWgs84 } from "./geoService";
 
 const PDOK_SUGGEST_URL = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/suggest";
 const PDOK_LOOKUP_URL = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/lookup";
-const OVERHEID_SRU_URL = "https://repository.overheid.nl/sru";
+const OVERHEID_SRU_URL = "/api/overheid-sru";
 
 interface CacheEntry<T> {
     timestamp: number;
@@ -39,21 +39,10 @@ function saveToCache<T>(key: string, data: T) {
     } catch (e) { console.warn("Failed to save to cache", e); }
 }
 
-const fetchWithProxy = async (targetUrl: string): Promise<string> => {
-    const proxies = [
-        (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-        (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
-    ];
-    let lastError: unknown;
-    for (const proxyFn of proxies) {
-        try {
-            const finalUrl = proxyFn(targetUrl);
-            const response = await fetch(finalUrl);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return await response.text();
-        } catch (e) { lastError = e; }
-    }
-    throw lastError || new Error("Network request failed");
+const fetchApi = async (targetUrl: string): Promise<string> => {
+    const response = await fetch(targetUrl);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.text();
 };
 
 export const searchAddress = async (query: string): Promise<AddressResult[]> => {
@@ -89,7 +78,7 @@ export const fetchRecentPermits = async (): Promise<PermitRecord[]> => {
     const params = new URLSearchParams({ operation: 'searchRetrieve', version: '1.2', recordSchema: 'gzd', query: cqlQuery, maximumRecords: '3' });
     const targetUrl = `${OVERHEID_SRU_URL}?${params.toString()}`;
     try {
-        const xmlText = await fetchWithProxy(targetUrl);
+        const xmlText = await fetchApi(targetUrl);
         const results = parseXMLResponse(xmlText, new Date().getFullYear(), false);
         saveToCache(cacheKey, results);
         return results;
@@ -106,7 +95,7 @@ export const fetchActivePermitCount = async (): Promise<number | null> => {
     const params = new URLSearchParams({ operation: 'searchRetrieve', version: '1.2', query: cqlQuery, maximumRecords: '0' });
     const targetUrl = `${OVERHEID_SRU_URL}?${params.toString()}`;
     try {
-        const xmlText = await fetchWithProxy(targetUrl);
+        const xmlText = await fetchApi(targetUrl);
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
         const countNode = findNodeByLocalName(xmlDoc, "numberOfRecords");
@@ -130,7 +119,7 @@ export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: nu
     const params = new URLSearchParams({ operation: 'searchRetrieve', version: '1.2', recordSchema: 'gzd', query: cqlQuery, maximumRecords: '100' });
     const targetUrl = `${OVERHEID_SRU_URL}?${params.toString()}`;
     try {
-        const xmlText = await fetchWithProxy(targetUrl);
+        const xmlText = await fetchApi(targetUrl);
         const results = parseXMLResponse(xmlText, year, true);
         saveToCache(cacheKey, results);
         return results;

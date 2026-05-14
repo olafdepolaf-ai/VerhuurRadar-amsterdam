@@ -4,16 +4,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VerhuurRadar | DEBUG</title>
+  <title>VerhuurRadar</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
 
   <script>
-    console.log("VRadar: HTML index geladen. Wachten op React mount...");
+    console.log("VRadar: HTML index is geladen. Wachten op React mount...");
     window.addEventListener('error', function (e) {
       console.error("VRadar: Globale fout gevangen:", e.message);
-      document.body.innerHTML += '<div style="color:red; padding:20px; background:#fff; position:fixed; top:0; z-index:9999">Fout bij laden: ' + e.message + '</div>';
+      var errDiv = document.createElement('div');
+      errDiv.style.cssText = 'color:red; padding:20px; background:#fff; position:fixed; top:0; z-index:9999';
+      errDiv.textContent = 'Fout bij laden: ' + e.message;
+      document.body.appendChild(errDiv);
     });
   </script>
   <script type="module" src="/index.tsx"></script>

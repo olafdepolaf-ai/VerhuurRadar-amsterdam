@@ -19,8 +19,8 @@ const MapLegend: React.FC = () => {
                 </button>
                 <div className={`transition-all ${isOpen ? 'max-h-24' : 'max-h-0'}`}>
                     <div className="px-4 pb-4 pt-1 flex flex-col gap-2 text-xs border-t">
-                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#ef4444] border border-white"></span><span>Actief</span></div>
-                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-slate-400 border border-white"></span><span>Inactief - 2021-2024</span></div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#d75c2e] border border-white"></span><span>Actief</span></div>
+                        <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-slate-400 border border-white"></span><span>Inactief - 2021-{new Date().getFullYear() - 1}</span></div>
                     </div>
                 </div>
             </div>

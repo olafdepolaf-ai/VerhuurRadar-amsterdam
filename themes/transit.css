@@ -1,0 +1,23 @@
+/* NYC Transit Time design tokens — applied when data-theme="transit" on <html> */
+[data-theme="transit"] {
+  --color-white: #fffcf7;
+  --color-slate-50: #fffcf7;
+  --color-slate-100: #f5efe6;
+  --color-slate-200: #e0d8ce;
+  --color-slate-300: #c8bfb5;
+  --color-slate-400: #9d968e;
+  --color-slate-500: #7a7269;
+  --color-slate-600: #5f6f7f;
+  --color-slate-700: #3d5168;
+  --color-slate-800: #243d56;
+  --color-slate-900: #17304d;
+  --color-red-50: #fff8ef;
+  --color-red-100: #fdecd8;
+  --color-red-200: #f5c4a8;
+  --color-red-400: #e58a5c;
+  --color-red-500: #dc7040;
+  --color-red-600: #d75c2e;
+  --color-red-700: #b84d26;
+  --color-red-800: #8b3a1a;
+  --font-sans: "Avenir Next", "Avenir", Arial, sans-serif;
+}
