@@ -91,7 +91,7 @@ const ResultList: React.FC<ResultListProps> = ({
                 className="flex-none bg-white/90 border-b border-slate-200 px-4 h-14 flex items-center justify-between"
                 onClick={onToggleMobileCollapse}
             >
-                <h2 className="font-bold text-lg">{locations.length} adressen gevonden</h2>
+                <h2 className="font-bold text-lg whitespace-nowrap">{locations.length} adressen gevonden</h2>
                 <div className="flex items-center gap-1">
                     {filters && onFiltersChange && (
                         <div ref={filterRef} className="relative">
