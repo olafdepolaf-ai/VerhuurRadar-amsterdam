@@ -177,6 +177,14 @@ export const fetchPermitCountForMonth = async (year: number, month: number): Pro
     } catch { return 0; }
 };
 
+const PAGE_SIZE = 100;
+
+const parseTotalRecords = (xmlText: string): number => {
+    const xmlDoc = new DOMParser().parseFromString(xmlText, 'text/xml');
+    const node = findNodeByLocalName(xmlDoc, 'numberOfRecords');
+    return node?.textContent ? parseInt(node.textContent, 10) : 0;
+};
+
 export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: number, year: number): Promise<PermitRecord[]> => {
     const x = Math.round(center.x), y = Math.round(center.y);
     const cacheKey = `permits_${x}_${y}_${radiusMeters}_${year}`;
@@ -185,13 +193,28 @@ export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: nu
     if (cached) return cached;
     const radiusKm = radiusMeters / 1000;
     const cqlQuery = `c.product-area="officielepublicaties" AND w.locatiepunt within/rijksdriehoek "${x} ${y} ${radiusKm}" AND dt.creator=="Amsterdam" AND dt.modified>=${year}-01-01 AND dt.modified<=${year}-12-31 AND dt.title="Besluit vakantieverhuur vergunning Verleend" sortBy dt.modified/sort.descending`.replace(/\s+/g, ' ').trim();
-    const params = new URLSearchParams({ operation: 'searchRetrieve', version: '1.2', recordSchema: 'gzd', query: cqlQuery, maximumRecords: '9999' });
-    const targetUrl = `${OVERHEID_SRU_URL}?${params.toString()}`;
+
+    const fetchPage = (startRecord: number): Promise<string> => {
+        const params = new URLSearchParams({ operation: 'searchRetrieve', version: '1.2', recordSchema: 'gzd', query: cqlQuery, maximumRecords: String(PAGE_SIZE), startRecord: String(startRecord) });
+        return fetchApi(`${OVERHEID_SRU_URL}?${params.toString()}`);
+    };
+
     try {
-        const xmlText = await fetchApi(targetUrl);
-        const results = parseXMLResponse(xmlText, year, true);
-        saveToCache(cacheKey, results);
-        return results;
+        const firstXml = await fetchPage(1);
+        const firstResults = parseXMLResponse(firstXml, year, true);
+        const total = parseTotalRecords(firstXml);
+
+        if (total <= PAGE_SIZE) {
+            saveToCache(cacheKey, firstResults);
+            return firstResults;
+        }
+
+        const starts: number[] = [];
+        for (let s = PAGE_SIZE + 1; s <= total; s += PAGE_SIZE) starts.push(s);
+        const rest = await Promise.all(starts.map(fetchPage));
+        const allResults = [...firstResults, ...rest.flatMap(xml => parseXMLResponse(xml, year, true))];
+        saveToCache(cacheKey, allResults);
+        return allResults;
     } catch (error) { return []; }
 };
 
