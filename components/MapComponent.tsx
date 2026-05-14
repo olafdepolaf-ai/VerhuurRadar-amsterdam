@@ -4,6 +4,7 @@ import { GroupedLocation, PermitStatus, LatLngCoordinate } from '../types';
 
 interface MapProps {
     center: LatLngCoordinate;
+    radiusM: number;
     locations: GroupedLocation[];
     onMarkerClick: (id: string) => void;
     selectedLocationId?: string;
@@ -11,7 +12,7 @@ interface MapProps {
     onMapMoveEnd?: (center: LatLngCoordinate) => void;
 }
 
-const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, selectedLocationId, isMobileListCollapsed, onMapMoveEnd }) => {
+const MapComponent: React.FC<MapProps> = ({ center, radiusM, locations, onMarkerClick, selectedLocationId, isMobileListCollapsed, onMapMoveEnd }) => {
     const mapRef = useRef<L.Map | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<{ [key: string]: L.CircleMarker }>({});
@@ -82,11 +83,12 @@ const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, se
         // Radius Circle
         if (radiusCircleRef.current) {
             radiusCircleRef.current.setLatLng(center);
+            radiusCircleRef.current.setRadius(radiusM);
             if (!map.hasLayer(radiusCircleRef.current)) radiusCircleRef.current.addTo(map);
         } else {
             radiusCircleRef.current = L.circle(center, {
-                radius: 200,
-                color: '#2563eb', // Blue
+                radius: radiusM,
+                color: '#2563eb',
                 fillOpacity: 0,
                 dashArray: '5, 5',
                 weight: 2
@@ -100,7 +102,7 @@ const MapComponent: React.FC<MapProps> = ({ center, locations, onMarkerClick, se
             map.setZoom(Math.min(map.getZoom() + 3, 20));
         }
 
-    }, [center]);
+    }, [center, radiusM]);
 
     // 4. Update Permit Markers
     useEffect(() => {

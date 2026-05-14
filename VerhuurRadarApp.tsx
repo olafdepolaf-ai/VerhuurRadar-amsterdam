@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import AddressSearch from './components/AddressSearch';
 import MapComponent from './components/MapComponent';
 import ResultList from './components/ResultList';
@@ -17,7 +17,7 @@ import { useAuth } from './contexts/AuthContext';
 import { loginWithGoogle, logout, deleteCurrentUserAccount } from './services/authService';
 import { fetchAlerts, addAlert, removeAlert, toggleAlertEmail } from './services/alertService';
 import { ALERTS_ENABLED } from './features';
-import { PERMIT_YEARS, SEARCH_RADIUS_M, ACTIVE_YEAR, MAP_MOVE_THRESHOLD_DEG } from './constants';
+import { PERMIT_YEARS, SEARCH_RADIUS_M, ACTIVE_YEAR, MAP_MOVE_THRESHOLD_DEG, MIN_SEARCH_RADIUS_M, MAX_SEARCH_RADIUS_M } from './constants';
 
 function VerhuurRadarApp() {
   const { currentUser } = useAuth();
@@ -35,6 +35,8 @@ function VerhuurRadarApp() {
   const [totalActiveCount, setTotalActiveCount] = useState<number | null>(null);
   const [isMobileListCollapsed, setIsMobileListCollapsed] = useState(false);
   const [filters, setFilters] = useState<MapFilters>({ showActive: true, showInactive: true });
+  const [searchRadius, setSearchRadius] = useState(SEARCH_RADIUS_M);
+  const lastSearchRef = useRef<{ rd: RDCoordinate; wgs: LatLngCoordinate | null; label: string } | null>(null);
   const [modals, setModals] = useState({ alertOpen: false, showAlertsOpen: false, profileOpen: false, loginError: null as { type: string; message: string } | null });
   const setModal = (patch: Partial<typeof modals>) => setModals(prev => ({ ...prev, ...patch }));
   const [savedAlerts, setSavedAlerts] = useState<SavedAlert[]>([]);
@@ -75,10 +77,19 @@ function VerhuurRadarApp() {
     [groupedLocations, filters]
   );
 
-  const searchByRD = async (rd: RDCoordinate, wgs: LatLngCoordinate | null, addressLabel: string) => {
+  const fetchPermits = async (rd: RDCoordinate, radius: number) => {
     setFoundPermits([]);
-    setHasSearched(true);
     setLoading(true);
+    setLoadingStatus("laden...");
+    const results = await Promise.all(
+      PERMIT_YEARS.map(y => fetchPermitsForYear(rd, radius, y))
+    );
+    setFoundPermits(results.flat());
+    setLoading(false);
+  };
+
+  const searchByRD = async (rd: RDCoordinate, wgs: LatLngCoordinate | null, addressLabel: string) => {
+    setHasSearched(true);
     if (wgs) {
       setUserLocation(wgs);
       setMapCenter(wgs);
@@ -91,12 +102,16 @@ function VerhuurRadarApp() {
       centroide_rd: `POINT(${rd.x} ${rd.y})`,
       centroide_ll: wgs ? `POINT(${wgs.lng} ${wgs.lat})` : '',
     } as AddressResult);
-    setLoadingStatus("laden...");
-    const results = await Promise.all(
-      PERMIT_YEARS.map(y => fetchPermitsForYear(rd, SEARCH_RADIUS_M, y))
-    );
-    setFoundPermits(results.flat());
-    setLoading(false);
+    lastSearchRef.current = { rd, wgs, label: addressLabel };
+    await fetchPermits(rd, searchRadius);
+  };
+
+  const handleRadiusChange = (radius: number) => setSearchRadius(radius);
+
+  const handleRadiusSearch = async (radius: number) => {
+    if (lastSearchRef.current && hasSearched) {
+      await fetchPermits(lastSearchRef.current.rd, radius);
+    }
   };
 
   const handleAddressSelect = async (addr: AddressResult) => {
@@ -282,6 +297,7 @@ function VerhuurRadarApp() {
                 {userLocation && (
                   <MapComponent
                     center={userLocation}
+                    radiusM={searchRadius}
                     locations={filteredLocations}
                     onMarkerClick={setSelectedLocationId}
                     selectedLocationId={selectedLocationId}
@@ -309,6 +325,9 @@ function VerhuurRadarApp() {
                 searchedAddress={currentAddress?.weergavenaam}
                 filters={filters}
                 onFiltersChange={setFilters}
+                searchRadius={searchRadius}
+                onRadiusChange={handleRadiusChange}
+                onRadiusSearch={handleRadiusSearch}
               />
             </div>
           </div>

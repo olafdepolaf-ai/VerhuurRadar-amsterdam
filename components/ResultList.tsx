@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { GroupedLocation, MapFilters, PermitRecord } from '../types';
-import { PERMIT_YEARS, ACTIVE_YEAR } from '../constants';
+import { PERMIT_YEARS, ACTIVE_YEAR, MIN_SEARCH_RADIUS_M, MAX_SEARCH_RADIUS_M } from '../constants';
 import { BellActiveIcon, BellInactiveIcon, ChevronDownIcon, FunnelIcon } from './Icons';
 
 interface ResultListProps {
@@ -16,6 +16,9 @@ interface ResultListProps {
     searchedAddress?: string;
     filters?: MapFilters;
     onFiltersChange?: (filters: MapFilters) => void;
+    searchRadius?: number;
+    onRadiusChange?: (radius: number) => void;
+    onRadiusSearch?: (radius: number) => void;
 }
 
 const ResultList: React.FC<ResultListProps> = ({
@@ -31,6 +34,9 @@ const ResultList: React.FC<ResultListProps> = ({
     searchedAddress,
     filters,
     onFiltersChange,
+    searchRadius,
+    onRadiusChange,
+    onRadiusSearch,
 }) => {
     const [isRinging, setIsRinging] = useState(false);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -129,6 +135,32 @@ const ResultList: React.FC<ResultListProps> = ({
                                             </span>
                                         </label>
                                     </div>
+                                    {searchRadius !== undefined && onRadiusChange && onRadiusSearch && (
+                                        <div className="pt-3 mt-1 border-t border-slate-100">
+                                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Zoekgebied</p>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-sm text-slate-600">Straal</span>
+                                                <span className="text-sm font-bold text-slate-800">
+                                                    {searchRadius >= 1000 ? '1 km' : `${searchRadius} m`}
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min={MIN_SEARCH_RADIUS_M}
+                                                max={MAX_SEARCH_RADIUS_M}
+                                                step={50}
+                                                value={searchRadius}
+                                                onChange={e => onRadiusChange(Number(e.target.value))}
+                                                onMouseUp={e => onRadiusSearch(Number((e.target as HTMLInputElement).value))}
+                                                onTouchEnd={e => onRadiusSearch(Number((e.currentTarget as HTMLInputElement).value))}
+                                                className="w-full accent-red-600 cursor-pointer"
+                                            />
+                                            <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+                                                <span>50 m</span>
+                                                <span>1 km</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
