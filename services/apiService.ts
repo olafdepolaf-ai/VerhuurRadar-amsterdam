@@ -185,7 +185,7 @@ export const fetchPermitsForYear = async (center: RDCoordinate, radiusMeters: nu
     if (cached) return cached;
     const radiusKm = radiusMeters / 1000;
     const cqlQuery = `c.product-area="officielepublicaties" AND w.locatiepunt within/rijksdriehoek "${x} ${y} ${radiusKm}" AND dt.creator=="Amsterdam" AND dt.modified>=${year}-01-01 AND dt.modified<=${year}-12-31 AND dt.title="Besluit vakantieverhuur vergunning Verleend" sortBy dt.modified/sort.descending`.replace(/\s+/g, ' ').trim();
-    const params = new URLSearchParams({ operation: 'searchRetrieve', version: '1.2', recordSchema: 'gzd', query: cqlQuery, maximumRecords: '100' });
+    const params = new URLSearchParams({ operation: 'searchRetrieve', version: '1.2', recordSchema: 'gzd', query: cqlQuery, maximumRecords: '9999' });
     const targetUrl = `${OVERHEID_SRU_URL}?${params.toString()}`;
     try {
         const xmlText = await fetchApi(targetUrl);
