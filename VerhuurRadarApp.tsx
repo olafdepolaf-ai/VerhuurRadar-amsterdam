@@ -242,7 +242,7 @@ function VerhuurRadarApp() {
               <VerhuurRadarIcon className="w-8 h-8" />
               <span className="font-bold text-xl">
                 <span className="text-slate-900">Verhuur</span>
-                <span className="text-red-600">Radar</span>
+                <span className="text-red-600">Buur</span>
               </span>
             </div>
             <div className="flex-1 max-w-xl mx-auto hidden md:flex">

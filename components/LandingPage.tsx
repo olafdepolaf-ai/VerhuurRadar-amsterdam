@@ -33,7 +33,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
                         <VerhuurRadarIcon className="w-10 h-10 sm:w-16 sm:h-16" />
                         <h1 className="text-3xl sm:text-6xl font-bold whitespace-nowrap">
                             <span className="text-slate-900">Verhuur</span>
-                            <span className="text-red-600">Radar</span>
+                            <span className="text-red-600">Buur</span>
                         </h1>
                     </div>
                     <p className="text-lg text-slate-600 mb-8">

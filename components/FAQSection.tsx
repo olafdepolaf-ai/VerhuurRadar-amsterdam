@@ -17,14 +17,16 @@ const FAQ_ITEMS: FaqItem[] = [
         a: "Deze website toont openbare gegevens van de Gemeente Amsterdam, gepubliceerd op Overheid.nl. Het gaat alleen om verleende vergunningen.",
     },
     {
-        q: "Zijn er ook andere regels?",
-        a: "Jazeker. Naast de regels van de gemeente, gelden ook de regels van bijvoorbeeld een Vereniging van Eigenaren (VvE). Als de VvE verhuur verbiedt, mag het niet.",
+        q: "Wat zijn de belangrijkste voorwaarden?",
+        a: "De woning moet uw hoofdverblijf zijn. U mag aan maximaal 4 personen tegelijk verhuren voor maximaal 30 nachten per kalenderjaar. Sociale huurwoningen mogen niet verhuurd worden. Daarnaast zijn een registratienummer, een vergunning en het vooraf melden van elke verhuurperiode verplicht.\n\nNaast de regels van de gemeente gelden ook de regels van uw Vereniging van Eigenaren (VvE). Als de VvE verhuur verbiedt, mag het niet.",
         l: "https://www.amsterdam.nl/wonen-bouwen-verbouwen/woonruimte-verhuren/regels-verhuur-woning/",
         lt: "Bekijk meer regels op amsterdam.nl",
     },
     {
-        q: "Wat zijn de belangrijkste voorwaarden?",
-        a: "De woning moet uw hoofdverblijf zijn. U mag aan maximaal 4 personen tegelijk verhuren voor maximaal 30 nachten per kalenderjaar. Sociale huurwoningen mogen niet verhuurd worden.\nDaarnaast is een registratienummer, een vergunning en het vooraf melden van elke verhuurperiode verplicht.",
+        q: "Hoe meld ik overlast?",
+        a: "Ervaart u overlast van vakantieverhuur in uw buurt? Meld dit bij de gemeente Amsterdam.",
+        l: "https://www.amsterdam.nl/wonen-bouwen-verbouwen/illegale-vakantie-verhuur-woonfraude-of/",
+        lt: "Overlast melden op amsterdam.nl",
     },
     {
         q: "Wat kost een vergunning en hoe lang is die geldig?",
