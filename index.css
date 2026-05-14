@@ -27,14 +27,17 @@
   --font-sans: "Avenir Next", "Avenir", Arial, sans-serif;
 }
 
-/* Force light mode unconditionally — this app has no dark mode */
+/* Force light mode — no dark mode in this app */
 html, body {
+  background: radial-gradient(ellipse at 5% 95%, #f0c4a0 0%, #edddd0 35%, #fffcf7 70%) fixed;
   background-color: #fffcf7;
   color: #17304d;
+  min-height: 100dvh;
 }
 
 @media (prefers-color-scheme: dark) {
   html, body {
+    background: radial-gradient(ellipse at 5% 95%, #f0c4a0 0%, #edddd0 35%, #fffcf7 70%) fixed !important;
     background-color: #fffcf7 !important;
     color: #17304d !important;
     color-scheme: light !important;
