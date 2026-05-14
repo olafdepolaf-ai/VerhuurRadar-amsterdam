@@ -12,7 +12,7 @@ const StatsWidget: React.FC<StatsWidgetProps> = ({ permits }) => {
     const trend = counts[years[0]] > counts[years[1]] ? 'Stijgend' : counts[years[0]] < counts[years[1]] ? 'Dalend' : 'Stabiel';
 
     return (
-        <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+        <div className="bg-white/85 backdrop-blur-sm rounded-xl border border-slate-200 overflow-hidden">
             <button onClick={() => setIsOpen(!isOpen)} className="w-full px-3 py-2 flex items-center justify-between gap-3">
                 <span className="text-sm font-bold"><span className="text-slate-500">Trend:</span> {trend}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" /></svg>
