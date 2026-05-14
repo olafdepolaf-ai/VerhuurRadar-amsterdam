@@ -64,7 +64,7 @@ const [currentAddress, setCurrentAddress] = useState<AddressResult | null>(null)
     acc[p.address].permits.push(p);
     if (p.date.startsWith('2026')) acc[p.address].status = PermitStatus.ACTIVE;
     return acc;
-  }, {} as { [key: string]: GroupedLocation })) as GroupedLocation[]).sort((a, b) => a.address.localeCompare(b.address)), [foundPermits]);
+  }, {} as { [key: string]: GroupedLocation })) as GroupedLocation[]).filter(loc => loc.address !== "Adres onbekend").sort((a, b) => a.address.localeCompare(b.address)), [foundPermits]);
 
   const searchByRD = async (rd: RDCoordinate, wgs: LatLngCoordinate | null, addressLabel: string) => {
     setFoundPermits([]);
