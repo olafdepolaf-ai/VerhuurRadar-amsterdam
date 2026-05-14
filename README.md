@@ -28,6 +28,12 @@ React · TypeScript · Vite · Tailwind CSS · Leaflet · Firebase · Vercel
 Vergunningsdata via [repository.overheid.nl](https://repository.overheid.nl/sru).
 Adreszoekfunctie via [PDOK Locatieserver](https://api.pdok.nl).
 
+## Inspiratie
+
+Visueel geïnspireerd op:
+- [NYC Transit Time Cartogram](https://castrio.me/nyc/) door Anthony Castrio
+- [NYCtransittime.com](https://nyctransittime.com)
+
 ## License
 
 MIT — zie [LICENSE](./LICENSE) voor de volledige tekst.
