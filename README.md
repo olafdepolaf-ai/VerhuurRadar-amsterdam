@@ -28,6 +28,10 @@ React · TypeScript · Vite · Tailwind CSS · Leaflet · Firebase · Vercel
 Vergunningsdata via [repository.overheid.nl](https://repository.overheid.nl/sru).
 Adreszoekfunctie via [PDOK Locatieserver](https://api.pdok.nl).
 
+## License
+
+MIT — zie [LICENSE](./LICENSE) voor de volledige tekst.
+
 ---
 
 Gemaakt door [Olaf Lemmers](https://www.linkedin.com/in/olaflemmers/)

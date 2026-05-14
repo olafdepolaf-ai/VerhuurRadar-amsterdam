@@ -1,7 +1,8 @@
 {
-  "name": "verhuurradar---v-0.2",
+  "name": "verhuurradar-amsterdam",
+  "description": "Zoek en visualiseer vakantieverhuurvergunningen in Amsterdam op adres of locatie.",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
