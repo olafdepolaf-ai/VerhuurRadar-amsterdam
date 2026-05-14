@@ -10,7 +10,7 @@ import HeaderProfile from './components/HeaderProfile';
 import ProfileModal from './components/ProfileModal';
 import LandingPage from './components/LandingPage';
 import { VerhuurRadarIcon } from './components/Icons';
-import { AddressResult, GroupedLocation, PermitRecord, PermitStatus, LatLngCoordinate, SavedAlert, RDCoordinate } from './types';
+import { AddressResult, GroupedLocation, MapFilters, PermitRecord, PermitStatus, LatLngCoordinate, SavedAlert, RDCoordinate } from './types';
 import { fetchPermitsForYear, fetchRecentPermits, fetchActivePermitCount, searchAddress, lookupAddress } from './services/apiService';
 import { parsePointString, wgs84ToRd } from './services/geoService';
 import { useAuth } from './contexts/AuthContext';
@@ -34,6 +34,7 @@ function VerhuurRadarApp() {
   const [recentPermits, setRecentPermits] = useState<PermitRecord[]>([]);
   const [totalActiveCount, setTotalActiveCount] = useState<number | null>(null);
   const [isMobileListCollapsed, setIsMobileListCollapsed] = useState(false);
+  const [filters, setFilters] = useState<MapFilters>({ showActive: true, showInactive: true });
   const [modals, setModals] = useState({ alertOpen: false, showAlertsOpen: false, profileOpen: false, loginError: null as { type: string; message: string } | null });
   const setModal = (patch: Partial<typeof modals>) => setModals(prev => ({ ...prev, ...patch }));
   const [savedAlerts, setSavedAlerts] = useState<SavedAlert[]>([]);
@@ -66,6 +67,13 @@ function VerhuurRadarApp() {
       .filter(loc => loc.address !== "Adres onbekend")
       .sort((a, b) => a.address.localeCompare(b.address));
   }, [foundPermits]);
+
+  const filteredLocations = useMemo(() =>
+    groupedLocations.filter(loc =>
+      loc.status === PermitStatus.ACTIVE ? filters.showActive : filters.showInactive
+    ),
+    [groupedLocations, filters]
+  );
 
   const searchByRD = async (rd: RDCoordinate, wgs: LatLngCoordinate | null, addressLabel: string) => {
     setFoundPermits([]);
@@ -274,7 +282,7 @@ function VerhuurRadarApp() {
                 {userLocation && (
                   <MapComponent
                     center={userLocation}
-                    locations={groupedLocations}
+                    locations={filteredLocations}
                     onMarkerClick={setSelectedLocationId}
                     selectedLocationId={selectedLocationId}
                     isMobileListCollapsed={isMobileListCollapsed}
@@ -289,7 +297,7 @@ function VerhuurRadarApp() {
 
             <div className={`w-full md:w-72 flex flex-col border-t md:border-t-0 md:border-r transition-all duration-300 ${isMobileListCollapsed ? 'h-14' : 'h-[45vh]'} md:h-full`}>
               <ResultList
-                locations={groupedLocations}
+                locations={filteredLocations}
                 onSelect={setSelectedLocationId}
                 selectedLocationId={selectedLocationId}
                 isLoading={loading}
@@ -299,6 +307,8 @@ function VerhuurRadarApp() {
                 hasActiveAlert={ALERTS_ENABLED ? hasActiveAlert : undefined}
                 onAlertClick={ALERTS_ENABLED ? handleAlertClick : undefined}
                 searchedAddress={currentAddress?.weergavenaam}
+                filters={filters}
+                onFiltersChange={setFilters}
               />
             </div>
           </div>

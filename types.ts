@@ -40,6 +40,11 @@ export interface GroupedLocation {
     permits: PermitRecord[];
 }
 
+export interface MapFilters {
+    showActive: boolean;
+    showInactive: boolean;
+}
+
 export interface SavedAlert {
     id: string; 
     address: string;
