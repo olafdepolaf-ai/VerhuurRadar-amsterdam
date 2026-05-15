@@ -36,9 +36,9 @@ const LandingPage: React.FC<LandingPageProps> = ({
                             <span className="text-red-600">Buur</span>
                         </h1>
                     </div>
-                    <p className="text-lg text-slate-600 mb-8">
+                    <h2 className="text-lg text-slate-600 mb-8 font-normal">
                         Wie in jouw buurt mag tijdelijk verhuren aan toeristen
-                    </p>
+                    </h2>
                     <AddressSearch
                         onAddressSelect={onAddressSelect}
                         onUseLocation={onUseLocation}
